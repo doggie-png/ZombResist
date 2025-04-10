@@ -24,16 +24,9 @@ function CreateFloor(){
 }
 
 function cargaModelos(){
-  //warehpuse
-  const loader = new GLTFLoader();
-  loader.load('./Level1/Modelos/Warehouse.glb', (gltf) => {
-    const model = gltf.scene;
-    model.scale.set(8,8,8);
-    scene.add(model); 
-    model.position.set(180,0,0);
-  }, undefined, (error) => {
-    console.error(error);
-  });
+  
+  //./Level1/ModelosGLB/wooden_watchtower.glb escala 8 nivel de fabrica abandonada
+  
 
   //avionC
   const loaderAvionC = new GLTFLoader();
@@ -48,13 +41,120 @@ function cargaModelos(){
   });
 
   const loader2 = new GLTFLoader();
-
   //avionA
   loader2.load('./Level1/ModelosGLB/avionA.glb', (gltf) => {
     const model = gltf.scene;
     model.scale.set(18,18,18);
     scene.add(model); 
     model.position.set(-130,0,-250);
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
+  // edificio
+  const loaderBuilding = new GLTFLoader();
+  const loaderBuilding2 = new GLTFLoader();
+  const loaderBuilding3 = new GLTFLoader();
+  const loaderBuilding4 = new GLTFLoader();
+  const loaderBuilding5 = new GLTFLoader();
+  loaderBuilding.load('./Level1/ModelosGLB/abandoned_brick_building.glb', (gltf) => {
+    const model = gltf.scene;
+    model.scale.set(1,1,1);
+    scene.add(model); 
+    model.position.set(-700,0,0);
+    
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
+  loaderBuilding4.load('./Level1/ModelosGLB/abandoned_brick_building.glb', (gltf) => {
+    const model = gltf.scene;
+    model.scale.set(1,1,1);
+    scene.add(model); 
+    model.position.set(350,0,0);
+    
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
+  loaderBuilding3.load('./Level1/ModelosGLB/abandoned_brick_building.glb', (gltf) => {
+    const model = gltf.scene;
+    model.scale.set(1,1,1);
+    scene.add(model); 
+    model.position.set(-2700,0,0);
+    
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
+  loaderBuilding5.load('./Level1/ModelosGLB/abandoned_brick_building.glb', (gltf) => {
+    const model = gltf.scene;
+    model.scale.set(1,1,1);
+    scene.add(model); 
+    model.position.set(-2700,0,1500);
+    
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+  
+  loaderBuilding2.load('./Level1/ModelosGLB/abandoned_brick_building.glb', (gltf) => {
+    const model2 = gltf.scene;
+    model2.scale.set(1,1,1);
+    scene.add(model2); 
+    model2.position.set(-700,0,1500);
+
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
+  // edificio destruido
+  const loaderbuildDestroyed = new GLTFLoader();
+  const loaderbuildDestroyed2 = new GLTFLoader();
+  const loaderbuildDestroyed3 = new GLTFLoader();
+  loaderbuildDestroyed.load('./Level1/ModelosGLB/post_apocalyptic_building.glb', (gltf) => {
+    const model = gltf.scene;
+    model.scale.set(20,20,20);
+    scene.add(model); 
+    model.position.set(-1600,0,0);
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
+  loaderbuildDestroyed2.load('./Level1/ModelosGLB/post_apocalyptic_building.glb', (gltf) => { 
+    const model = gltf.scene;
+    model.scale.set(20,20,20);
+    scene.add(model); 
+    model.position.set(-1600,0,1500);
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
+  loaderbuildDestroyed3.load('./Level1/ModelosGLB/post_apocalyptic_building.glb', (gltf) => { 
+    const model = gltf.scene;
+    model.scale.set(20,20,20);
+    scene.add(model); 
+    model.position.set(450,0,1500);
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
+  // camion
+  const loaderRuinedTruck = new GLTFLoader();
+  loaderRuinedTruck.load('./Level1/ModelosGLB/truck_01.glb', (gltf) => {
+    const model = gltf.scene;
+    model.scale.set(15,15,15);
+    scene.add(model); 
+    model.position.set(750,0,700);
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
+  const loaderRuinedTruck2 = new GLTFLoader();
+  loaderRuinedTruck2.load('./Level1/ModelosGLB/truck_01.glb', (gltf) => {
+    const model = gltf.scene;
+    model.scale.set(15,15,15);
+    scene.add(model); 
+    model.position.set(-3150,0,800);
   }, undefined, (error) => {
     console.error(error); 
   });
@@ -80,11 +180,11 @@ function cargaModelos(){
   });
 
   //barricada de concreto
-  const textureLoader32 = new THREE.TextureLoader();
+  
   const textureBarricada = textureLoader.load('./Level1/Modelos/concrete-barricade/concrete-barricade.png'); 
   // Cargar el objeto .obj
   const loaderobj2 = new OBJLoader();
-  loaderobj.load('./Level1/Modelos/concrete-barricade/concrete-barricade.obj', function(object) {
+  loaderobj2.load('./Level1/Modelos/concrete-barricade/concrete-barricade.obj', function(object) {
     
     object.traverse(function(child) {
         if (child.isMesh) {
@@ -92,13 +192,111 @@ function cargaModelos(){
             child.material.needsUpdate = true;
         }
     });
-    object.scale.set(2,2,2);
+    object.scale.set(3,3,9);
     scene.add(object);
-    object.position.set(0, 0, 55);
+    object.position.set(600, 0, 500);
+  });
+
+  const loaderobj4 = new OBJLoader();
+  loaderobj4.load('./Level1/Modelos/concrete-barricade/concrete-barricade.obj', function(object) {
+    
+    object.traverse(function(child) {
+        if (child.isMesh) {
+            child.material.map = textureBarricada;
+            child.material.needsUpdate = true;
+        }
+    });
+    object.scale.set(3,3,9);
+    scene.add(object);
+    object.position.set(600, 0, 700);
+  });
+
+  const loaderobj5 = new OBJLoader();
+  loaderobj5.load('./Level1/Modelos/concrete-barricade/concrete-barricade.obj', function(object) {
+    
+    object.traverse(function(child) {
+        if (child.isMesh) {
+            child.material.map = textureBarricada;
+            child.material.needsUpdate = true;
+        }
+    });
+    object.scale.set(3,3,9);
+    scene.add(object);
+    object.position.set(600, 0, 900);
+  });
+
+  
+  loaderobj5.load('./Level1/Modelos/concrete-barricade/concrete-barricade.obj', function(object) {
+    
+    object.traverse(function(child) {
+        if (child.isMesh) {
+            child.material.map = textureBarricada;
+            child.material.needsUpdate = true;
+        }
+    });
+    object.scale.set(3,3,9);
+    scene.add(object);
+    object.position.set(600, 0, 1100);
+  });
+
+  
+  loaderobj2.load('./Level1/Modelos/concrete-barricade/concrete-barricade.obj', function(object) {
+    
+    object.traverse(function(child) {
+        if (child.isMesh) {
+            child.material.map = textureBarricada;
+            child.material.needsUpdate = true;
+        }
+    });
+    object.scale.set(3,3,9);
+    scene.add(object);
+    object.position.set(-3050, 0, 450);
+  });
+
+  
+  loaderobj4.load('./Level1/Modelos/concrete-barricade/concrete-barricade.obj', function(object) {
+    
+    object.traverse(function(child) {
+        if (child.isMesh) {
+            child.material.map = textureBarricada;
+            child.material.needsUpdate = true;
+        }
+    });
+    object.scale.set(3,3,9);
+    scene.add(object);
+    object.position.set(-3050, 0, 650);
+  });
+
+  
+  loaderobj5.load('./Level1/Modelos/concrete-barricade/concrete-barricade.obj', function(object) {
+    
+    object.traverse(function(child) {
+        if (child.isMesh) {
+            child.material.map = textureBarricada;
+            child.material.needsUpdate = true;
+        }
+    });
+    object.scale.set(3,3,9);
+    scene.add(object);
+    object.position.set(-3050, 0, 850);
+  });
+
+  
+  loaderobj5.load('./Level1/Modelos/concrete-barricade/concrete-barricade.obj', function(object) {
+    
+    object.traverse(function(child) {
+        if (child.isMesh) {
+            child.material.map = textureBarricada;
+            child.material.needsUpdate = true;
+        }
+    });
+    object.scale.set(3,3,9);
+    scene.add(object);
+    object.position.set(-3050, 0, 1050);
   });
 
   //caja militar
-  const textureLoader3 = new THREE.TextureLoader();
+  
   const textureMilitarBox = textureLoader.load('./Level1/Modelos/Militar-box/militarBox.png'); 
   // Cargar el objeto .obj
   const loaderobj3 = new OBJLoader();
@@ -115,23 +313,7 @@ function cargaModelos(){
     object.position.set(0, 0, -35);
   });
 
-  //hangar
-  const textHangar = new THREE.TextureLoader();
-  const textureHan = textureLoader.load('./Level2/Models/garaje/d_garage_33.jpg'); 
-  // Cargar el objeto .obj
-  const loaderobj4 = new OBJLoader();
-  loaderobj4.load('./Level2/Models/garaje/hangar.obj', function(object) {
-    
-    object.traverse(function(child) {
-        if (child.isMesh) {
-            child.material.map = textureHan;
-            child.material.needsUpdate = true;
-        }
-    });
-    object.scale.set(10,10,10);
-    scene.add(object);
-    object.position.set(0, 0, -1005);
-  });
+  
 }
 let mixer;
 const animationsMap = new Map();
@@ -210,8 +392,8 @@ cargaModelos();
 let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
 let isRunning = false;
 //let speed = 1;
-const baseSpeed = 1;
-const runMultiplier = 3;
+const baseSpeed = 5;
+const runMultiplier = 4;
 const currentSpeed = isRunning ? baseSpeed * runMultiplier : baseSpeed;
 let velocity = new THREE.Vector3();
 let controls = new PointerLockControls(camera, document.body);
