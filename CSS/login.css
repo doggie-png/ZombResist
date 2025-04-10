@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+
+body {
+    background-image: url('/Imagenes/Fondos/pared\ negra.jpg');
+    font-family: "Oswald", sans-serif;
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.img-container {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 50px; 
+}
+
+.img-container img {
+    max-width: 600px; 
+    width: 100%;
+}
+
+.form-container {
+    font-size: 25px;
+    max-width: 500px; 
+    color: #ffffff;
+    width: 100%;
+    background-color: rgba(250, 250, 250, 0.1);
+    border: 5px solid #300101af;
+    border-radius: 8px;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.959);
+    padding: 30px;
+    text-align: center;
+}
+
+.form-control {
+    background-color: rgba(43, 38, 38, 0.856);
+    border: none;
+    color: #fff;
+}
+.form-control:focus {
+    background-color: rgba(43, 38, 38, 0.856);
+    border: none;
+    box-shadow: none;
+    color: #fff;
+}
+.form-control::placeholder {
+    color: #dadada;
+}
+
+.btn {
+    background-color: #5f0000;
+    color: #fff;
+    font-size: 20px;
+}
+.btn:active {
+    background-color: #5f0000;
+    color: #fff;
+    font-size: 20px;
+}
+.btn:hover {
+    background-color: #750000;
+}
+
+h1 {
+    font-size: 50px;
+}
+
+a {
+    color: rgb(104, 0, 0);
+}
+
+a:hover {
+    color: rgb(63, 14, 14);
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.form-container {
+    opacity: 0; /* La imagen está oculta al inicio */
+    animation: fadeInUp 1s ease-out forwards;
+}

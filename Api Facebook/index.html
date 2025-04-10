@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Api</title>
+</head>
+<body>
+    <label for="fua">Compartir Puntuacion</label>
+    <input type="button" value="Compartir" onclick="Compartir()">
+    <input type="button" value="Obtener Posts" onclick="GetPosts()">
+
+    <script>
+        window.fbAsyncInit = function() {
+          FB.init({
+            appId            : '1695515464385109',
+            xfbml            : true,
+            version          : 'v22.0'
+          });
+
+          function GetPosts(){
+            FB.api("/122094981662829590/posts",
+                {
+                    access_token:"EAAYGDZCT3QlUBOzksnDcooraN2c5Lt8mpvJfZBmIHDWQZAwIdL7VIJYYBcWOpdaA9pQTN9ZAGd5fguwXwVOWelTZBiCniXdahllnMVnKgg6VvDYhrMGGzIQgpt0rjOYopbXBypyaZAdHuT2DZB9gqzgQf4Hz9LnNPpF5boEjnlkzV2ZCpvlbhZB9ZBUrk6GVu45pzgI4ZBVZBcrFQ7nCVlWV5Bwq5SSoL2NQrIfnbksgESoDeiXCILgcJiMV111xrv8ohZBrJr1H6J24ZD"
+                },
+                
+                function(response){
+                    if(response && !response.error){
+                        console.log(response);
+                    }
+                
+                }
+            );
+          }
+
+            
+
+            function Compartir(){
+                FB.api(
+                    "/420/feed",
+                    "POST",
+                    {
+                        message: "Obtuve 1000 puntos, crees poder superar mi record?",
+                        access_token:"E"
+                    },
+                    
+                    function(response){
+                        if(response && !response.error){
+                            console.log(response);
+                        }
+                    
+                    }
+                );
+            }
+            
+
+        };
+    </script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+
+</body>
+</html>

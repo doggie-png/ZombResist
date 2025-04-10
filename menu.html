@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/CSS/menu.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú</title>
+</head>
+<body>
+    <div class="contenedor">
+        <!-- Sección de personajes -->
+        <div class="character">
+            <div class="seccion">
+                <h3>Selecciona tu personaje</h3>
+                <div class="lista-personajes">
+                    <div class="personaje">
+                        <img src="/Imagenes/character/1.1.png" alt="Personaje 1">
+                        <button class="btn personaje-btn" data-img="/Imagenes/character/1.png">Personaje 1</button>
+                    </div>
+                    <div class="personaje">
+                        <img src="/Imagenes/character/2.2.png" alt="Personaje 2">
+                        <button class="btn personaje-btn" data-img="/Imagenes/character/2.png">Personaje 2</button>
+                    </div>
+                    <div class="personaje">
+                        <img src="/Imagenes/character/3.3.png" alt="Personaje 3">
+                        <button class="btn personaje-btn" data-img="/Imagenes/character/3.png">Personaje 3</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="seccion">
+                <h2>Selecciona tu arma</h2>
+                <div class="lista-armas">
+                    <div class="arma">
+                        <img src="/Imagenes/Wp/rf.png" alt="Arma 1">
+                        <button class="btn arma-btn">Arma 1</button>
+                    </div>
+                    <div class="arma">
+                        <img src="/Imagenes/Wp/sh.png" alt="Arma 2">
+                        <button class="btn arma-btn">Arma 2</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de personaje seleccionado -->
+        <div class="look">
+            <img id="personaje-seleccionado" src="/Imagenes/character/1.png" alt="Personaje seleccionado">
+        </div>
+        
+        <div class="col-mapa">
+        <!-- Sección de mapas -->
+        <div class="mapas">
+            <h3>Selecciona un Mapa:</h3>
+            <div class="mapa">
+                <img src="/Imagenes/Fondos/mapa (1).jpeg" alt="Mapa 1">
+                <button class="btn mapa-btn">Mapa 1</button>
+            </div>
+            <div class="mapa">
+                <img src="/Imagenes/Fondos/Mapa (2).jpeg" alt="Mapa 2">
+                <button class="btn mapa-btn">Mapa 2</button>
+            </div>
+        </div>
+        <!-- Botones de acción -->
+        <div class="opciones">
+            <button id="create-match" class="btn" data-bs-toggle="modal" data-bs-target="#difficultyModal">Crear partida</button>
+            <button onclick="window.location.href='play.html'" id="search-match" class="btn">Buscar partida</button>
+            <button onclick="window.location.href='inicio.html'" id="search-match" class="btn">Salir</button>
+
+        </div>            
+        </div>
+    </div>
+
+<!-- MODAL PARA SELECCIONAR DIFICULTAD -->
+<div class="modal fade" id="difficultyModal" tabindex="-1" aria-labelledby="difficultyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="difficultyModalLabel">Selecciona la Dificultad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="dificultad-container">
+                    <div class="zombie">
+                        <img src="/Imagenes/Zomb/Captura de pantalla 2025-03-07 131630.png" alt="Fácil">
+                        <button class="btn zombie-btn" data-dificultad="Fácil">Fácil</button>
+                    </div>
+                    <div class="zombie">
+                        <img src="/Imagenes/Zomb/Captura de pantalla 2025-03-07 131239.png" alt="Normal">
+                        <button class="btn zombie-btn" data-dificultad="Normal">Normal</button>
+                    </div>
+                    <div class="zombie">
+                        <img src="/Imagenes/Zomb/Captura de pantalla 2025-03-07 131252.png" alt="Difícil">
+                        <button class="btn zombie-btn" data-dificultad="Difícil">Difícil</button>
+                    </div>
+                    <div class="zombie">
+                        <img src="/Imagenes/Zomb/Captura de pantalla 2025-03-07 131257.png" alt="Extremo">
+                        <button class="btn zombie-btn" data-dificultad="Extremo">Extremo</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="window.location.href='play.html'" id="iniciarJuego" class="btn">Iniciar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <script src="/JS/menu.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

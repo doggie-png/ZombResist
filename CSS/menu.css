@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+
+body {
+    width: 100vw;
+    height: 100vh;
+    background-image: url('/Imagenes/Fondos/pared\ negra.jpg');
+    background-size: cover;
+    text-align: center;
+    font-family: "Oswald", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.contenedor{
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+.character{
+    margin: 20px;
+    color: aliceblue;
+    width: 300px;
+    height: 200px;
+}
+.seccion{
+    margin-bottom: 30px;
+}
+.character .btn{
+    align-items: center;
+    width: 300px;
+    color: #fff;
+    background-color: rgba(107, 82, 82, 0.3);
+}
+.character .btn:hover{
+    align-items: center;
+    width: 300px;
+    color: #fff;
+    background-color: rgba(194, 11, 11, 0.514);
+}
+.personaje{
+    background-color: rgba(85, 65, 65, 0.39);
+    font-size: 50px;
+    margin: 5px;
+    border-radius: 5px;
+    border: 2px solid #a31111;
+    display: flex;
+}
+.personaje img{
+    width: 100px;
+}
+
+.col{
+    margin: 30px;
+}
+.armas{
+    margin: 20px;
+    color: aliceblue;
+    width: 300px;
+    height: 200px;
+}
+.armas .btn{
+    align-items: center;
+    width: 300px;
+    color: #fff;
+    background-color: rgba(107, 82, 82, 0.3);
+}
+.armas .btn:hover{
+    align-items: center;
+    width: 300px;
+    color: #fff;
+    background-color: rgba(194, 11, 11, 0.514);
+}
+.arma{
+    background-color: rgba(85, 65, 65, 0.39);
+    font-size: 50px;
+    margin: 5px;
+    border-radius: 5px;
+    border: 2px solid #a31111;
+    display: flex;
+}
+.arma img{
+    width: 100px;
+}
+
+.look {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.look img {
+    border-radius: 15px;
+    background-color: rgba(107, 82, 82, 0.3);
+    height: 620px;
+}
+
+.mapas{
+    margin: 10px;
+    align-items: end;
+    justify-content: end;
+    color: aliceblue;
+    width: 250px;
+}
+.mapas .btn{
+    font-size: 20px;
+    width: 200px;
+    color: #fff;
+    background-color: rgba(107, 82, 82, 0.3);
+}
+.mapas .btn:hover{
+    font-size: 20px;
+    width: 200px;
+    color: #fff;
+    background-color: rgba(194, 11, 11, 0.514);
+}
+.mapa{
+    margin: 10px;
+    padding: 5px;
+    background-color: rgba(85, 65, 65, 0.39);
+    border-radius: 5px;
+    border: 2px solid #a31111;
+}
+.mapa img{
+    width: 200px;
+}
+
+.opciones {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+.opciones .btn{
+    margin: 10px;
+    align-items: center;
+    width: 200px;
+    font-size: 20px;
+    color: #fff;
+    background-color: rgba(107, 82, 82, 0.3);
+}
+.opciones .btn:hover{
+    margin: 5px;
+    align-items: center;
+    width: 200px;
+    font-size: 30px;
+    color: #fff;
+}
+
+.btn-seleccionado {
+    background-color: rgba(194, 11, 11, 0.514) !important;
+    color: white !important;
+}
+.modal-content {
+    width: 100%;
+    color: #fff;
+    background-color: rgba(46, 28, 28, 0.9);
+}
+
+/* Cuerpo de la modal */
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.dificultad-container {
+    margin: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    text-align: center;
+}
+.zombie{
+    background-color: rgba(85, 65, 65, 0.39);
+    border: 2px solid #a31111;
+    border-radius: 5px;
+}
+.zombie img {
+    width: auto;
+    height: 150px;
+    border-radius: 10px;
+}
+
+.zombie .btn {
+    width: 100px;
+    height: 150px;
+    background-color: rgba(107, 82, 82, 0.5);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+}
+
+.zombie .btn:hover {
+    background-color: rgba(194, 11, 11, 0.7);
+}
+
+.modal-footer {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    padding: 15px;
+}
+
+#iniciarJuego {
+    margin: 10px;
+    align-items: center;
+    width: 200px;
+    font-size: 30px;
+    color: #fff;
+    background-color: rgba(107, 82, 82, 0.3);
+}
+#iniciarJuego:hover {
+    margin: 10px;
+    align-items: center;
+    width: 200px;
+    font-size: 30px;
+    color: #fff;
+    background-color: rgba(194, 11, 11, 0.7);
+}

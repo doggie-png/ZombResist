@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+
+body {
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    font-family: "Oswald", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+
+.loading-bg {
+    background-image: url('/Imagenes/Fondos/pared negra.jpg');
+}
+
+.default-bg {
+    background-image: url('/Imagenes/Fondos/play.jpg');
+}
+
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+#loading-logo {
+    width: 50%;
+    max-width: 500px;
+    opacity: 0;
+    transform: translateY(100px);
+    animation: fadeInUp 1.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(100px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#options {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #681313a9;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 25px;
+    padding: 1rem;
+    z-index: 10;
+}
+
+.modal-content {
+    background-color: #2a2a2a;
+    color: white;
+    border-radius: 10px;
+}
+
+.btn-close {
+    filter: invert(1);
+}
+
+.list-group-item {
+    background-color: #444;
+    color: white;
+    border: 1px solid #666;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+.list-group-item:hover {
+    background-color: #881313;
+}
+.card{
+    display: flex;
+    background-color: #2a2a2a;
+    color: aliceblue;
+}
+.card button{
+    align-items: center;
+    text-align: center;
+    display: flex;
+    border: none;
+    margin: 5px;
+    border-radius: 5px;
+    width: 50px;
+    height: 50px;
+    background-color: #881313;
+    padding: 10px;
+}
+.card button:hover{
+    background-color: #490a0a;
+}
+.card {
+    display: flex;
+    background-color: #2a2a2a;
+    color: aliceblue;
+    padding: 10px;
+    border-radius: 10px;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Input de volumen (slider) */
+input[type="range"] {
+    width: 150px;
+    accent-color: #881313; /* Color de la barra */
+    cursor: pointer;
+}
+
+/* Valor del volumen */
+#volumeValue {
+    font-size: 18px;
+    margin-left: 10px;
+}
+
