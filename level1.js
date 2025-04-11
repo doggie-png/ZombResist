@@ -32,9 +32,9 @@ function cargaModelos(){
   const loaderAvionC = new GLTFLoader();
   loaderAvionC.load('./Level1/ModelosGLB/avionC/ww_plane.glb', (gltf) => {
     const model = gltf.scene;
-    model.scale.set(18,18,18);
+    model.scale.set(22,22,22);
     scene.add(model); 
-    model.position.set(-80,30,280);
+    model.position.set(-1400,30,700);
     model.rotation.z = Math.PI / 1;
   }, undefined, (error) => {
     console.error(error);
@@ -44,7 +44,7 @@ function cargaModelos(){
   //avionA
   loader2.load('./Level1/ModelosGLB/avionA.glb', (gltf) => {
     const model = gltf.scene;
-    model.scale.set(18,18,18);
+    model.scale.set(22,22,22);
     scene.add(model); 
     model.position.set(-130,0,-250);
   }, undefined, (error) => {
@@ -159,26 +159,20 @@ function cargaModelos(){
     console.error(error); 
   });
 
-  //carga con obj
-  //caja de madera
-  // Cargar la textura
-  const textureLoader = new THREE.TextureLoader();
-  const texture = textureLoader.load('./Level1/Modelos/caja/cajaMadera.png'); 
-  // Cargar el objeto .obj
-  const loaderobj = new OBJLoader();
-  loaderobj.load('./Level1/Modelos/caja/caja.obj', function(object) {
-    
-    object.traverse(function(child) {
-        if (child.isMesh) {
-            child.material.map = texture;
-            child.material.needsUpdate = true;
-        }
-    });
-    object.scale.set(0.25,0.25,0.25);
-    scene.add(object);
-    object.position.set(0, 1, 10);
+  const loaderAmbulance = new GLTFLoader();
+  loaderAmbulance.load('./Level3/ModelosGLB/ambulance.glb', (gltf) => {
+    const model = gltf.scene;
+    model.scale.set(18,18,18);
+    scene.add(model); 
+    model.position.set(-600,0,700);
+  }, undefined, (error) => {
+    console.error(error); 
   });
 
+  //carga con obj
+  
+  // Cargar la textura
+  const textureLoader = new THREE.TextureLoader();
   //barricada de concreto
   
   const textureBarricada = textureLoader.load('./Level1/Modelos/concrete-barricade/concrete-barricade.png'); 
@@ -300,7 +294,7 @@ function cargaModelos(){
   const textureMilitarBox = textureLoader.load('./Level1/Modelos/Militar-box/militarBox.png'); 
   // Cargar el objeto .obj
   const loaderobj3 = new OBJLoader();
-  loaderobj.load('./Level1/Modelos/Militar-box/militarBox.obj', function(object) {
+  loaderobj3.load('./Level1/Modelos/Militar-box/militarBox.obj', function(object) {
     
     object.traverse(function(child) {
         if (child.isMesh) {
@@ -330,7 +324,7 @@ function Player(){
     scene.add(soldier); 
     soldier.position.set(0,1,0);
     soldier.rotation.y = Math.PI;
-    camera.position.set(0,85,84);
+    //camera.position.set(0,85,84);
 
 //    const gltfAnimations = gltf.animations;
     // Filtrar y agregar animaciones al mapa
@@ -369,7 +363,7 @@ function playAnimation(name) {
 const scene = new THREE.Scene();
 //camera
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000); //55, window.innerWidth / window.innerHeight, 45, 30000
-//camera.position.set(10,5,40);     
+camera.position.set(0,33,-30);     
 
 //render
 const renderer = new THREE.WebGLRenderer();
@@ -380,8 +374,8 @@ renderer.setAnimationLoop(animate);
 // Luces
 const ambientLight = new THREE.AmbientLight(0x404040, 2); // Luz ambiental suave
 scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // Luz direccional (como el sol)
-directionalLight.position.set(10, 10, 10).normalize(); // Posición de la luz
+const directionalLight = new THREE.DirectionalLight(0xffffff, 2); // Luz direccional (como el sol)
+directionalLight.position.set(100, 100, 100).normalize(); // Posición de la luz
 scene.add(directionalLight);
 
 CreateSkyBox();
@@ -392,8 +386,8 @@ cargaModelos();
 let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
 let isRunning = false;
 //let speed = 1;
-const baseSpeed = 5;
-const runMultiplier = 4;
+const baseSpeed = 2;
+const runMultiplier = 2;
 const currentSpeed = isRunning ? baseSpeed * runMultiplier : baseSpeed;
 let velocity = new THREE.Vector3();
 let controls = new PointerLockControls(camera, document.body);
@@ -458,7 +452,7 @@ let soldier;
 Player();
 
 function animate() {
-  controls.update();
+  //controls.update();
   //orbitControl.update();
   const delta = clock.getDelta();
   if (mixer) mixer.update(delta);
@@ -481,6 +475,7 @@ function animate() {
   camera.getWorldDirection(direction);
   direction.y = 0;
   direction.normalize();
+  
   const rightDirection = new THREE.Vector3();
   rightDirection.crossVectors(direction, camera.up);  // Dirección lateral
   rightDirection.normalize();
@@ -493,6 +488,7 @@ function animate() {
 
   if(soldier){
     soldier.position.y = 1;
+    camera.position.y = 35;
 
     const lookDirection = new THREE.Vector3();
     camera.getWorldDirection(lookDirection);
@@ -506,8 +502,8 @@ function animate() {
     soldier.quaternion.copy(quaternion);
 
     camera.position.x = soldier.position.x;
-    camera.position.y = soldier.position.y + 35; // +3 Mantener la cámara a la altura del soldado
-    camera.position.z = soldier.position.z -40; // +5
+    //soldier.position.y = camera.position.y  ; // +35 Mantener la cámara a la altura del soldado
+    camera.position.z = soldier.position.z + 5 ; // -40
   }
 
   
