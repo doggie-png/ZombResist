@@ -313,25 +313,19 @@ let mixer;
 const animationsMap = new Map();
 let currentAction;
 const clock = new THREE.Clock();
+
 function Player(){
   //personaje
   const loaderPersonaje = new GLTFLoader();
-  loaderPersonaje.load('./personajes/Soldier.glb', (gltf) => {
+  loaderPersonaje.load('./personajes/sold.glb', (gltf) => {
     soldier = gltf.scene;
     mixer = new THREE.AnimationMixer(soldier);
     soldier.scale.set(20,20,20);
-          
+    
     scene.add(soldier); 
     soldier.position.set(0,1,0);
-    soldier.rotation.y = Math.PI;
+    //soldier.rotation.z = Math.PI;
     //camera.position.set(0,85,84);
-
-//    const gltfAnimations = gltf.animations;
-    // Filtrar y agregar animaciones al mapa
-    //gltfAnimations.filter(a => a.name !== 'TPose').forEach((a) => {
-      
-      //animationsMap.set(a.name, mixer.clipAction(a));
-    //});
     //console.log('Animaciones cargadas:', gltf.animations.map(a => a.name));
     gltf.animations.forEach((clip) => {
       animationsMap.set(clip.name, mixer.clipAction(clip));
@@ -390,12 +384,6 @@ const baseSpeed = 2;
 const runMultiplier = 2;
 const currentSpeed = isRunning ? baseSpeed * runMultiplier : baseSpeed;
 let velocity = new THREE.Vector3();
-let controls = new PointerLockControls(camera, document.body);
-//const orbitControl = new OrbitControls(camera, renderer.domElement);
-
-document.body.addEventListener('click', () => {
-  controls.lock(); // Bloquear el ratón cuando se haga clic en la pantalla
-});
 
 //orbitControl.enableDamping = true;
 ////orbitControl.minDistance = 5;
@@ -450,6 +438,36 @@ window.addEventListener('keyup', (event) => {
 });
 let soldier;
 Player();
+let isMouseDown = false;
+
+
+let rotation = { x: 0, y: 0 };
+
+// Entrar en modo pointer lock al hacer clic
+document.body.addEventListener('click', () => {
+  document.body.requestPointerLock();
+});
+
+document.addEventListener('pointerlockchange', () => {
+  const isLocked = document.pointerLockElement === document.body;
+  console.log('Pointer locked:', isLocked);
+});
+
+// Rotación de cámara con movimiento del mouse (sin necesidad de click sostenido)
+document.addEventListener('mousemove', (event) => {
+  if (document.pointerLockElement !== document.body) return;
+
+  const sensitivity = 0.002;
+  rotation.y -= event.movementX * sensitivity;
+  rotation.x -= event.movementY * sensitivity;
+
+  // Limitar vertical
+  rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.x));
+
+  const quat = new THREE.Quaternion();
+  quat.setFromEuler(new THREE.Euler(rotation.x, rotation.y, 0, 'YXZ'));
+  camera.quaternion.copy(quat);
+});
 
 function animate() {
   //controls.update();
@@ -485,25 +503,24 @@ function animate() {
   if (moveRight) soldier.position.addScaledVector(rightDirection, currentSpeed);
 
   
+  // calcular vista
+  const lookDir = new THREE.Vector3();
+  camera.getWorldDirection(lookDir);
+  lookDir.y = 0;
+  lookDir.normalize();
+
+  const targetQuat = new THREE.Quaternion();
+  targetQuat.setFromUnitVectors(new THREE.Vector3(0, 0, 1), lookDir);
 
   if(soldier){
     soldier.position.y = 1;
-    camera.position.y = 35;
+    soldier.quaternion.slerp(targetQuat, 0.2);
 
-    const lookDirection = new THREE.Vector3();
-    camera.getWorldDirection(lookDirection);
-    lookDirection.y = 0;
-    lookDirection.normalize();
-    const quaternion = new THREE.Quaternion();
-    quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), lookDirection);
-    const flip = new THREE.Quaternion();
-    flip.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-    quaternion.multiply(flip);
-    soldier.quaternion.copy(quaternion);
-
-    camera.position.x = soldier.position.x;
-    //soldier.position.y = camera.position.y  ; // +35 Mantener la cámara a la altura del soldado
-    camera.position.z = soldier.position.z + 5 ; // -40
+    const cameraOffset = new THREE.Vector3(0, 35, -35); //posicion de la camara
+    cameraOffset.applyQuaternion(soldier.quaternion);
+    camera.position.copy(soldier.position).add(cameraOffset);
+    //camera.lookAt(soldier.position);
+    
   }
 
   
