@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+
+body {
+    background-image: url('../Imagenes/Fondos/pared\ negra.jpg');
+    font-family: "Oswald", sans-serif;
+}
+.contenedor{
+    margin-top: -80px;
+}
+.header .btn{
+    margin-left: 30%;
+    width: 250px;
+    font-size: 40px;
+    color: #fff;
+    background-color: rgba(194, 11, 11, 0.514);
+}
+.header .btn:hover{
+    color: #fff;
+    transform: scale(1.1);
+    background-color: rgb(204, 0, 0);
+}
+.noticias{
+    margin-top: -80px;
+    color: #fff;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+}
+.info{
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.438);
+    color: #fff;
+}
+.info button{
+    background-color: rgba(0, 0, 0, 0.774);
+    width: 50px;
+}
+.card{
+    background-color: rgba(46, 28, 28, 0.9);
+    color: #fff;
+}
+.card-img-top {
+    height: 180px;
+    object-fit: cover;
+}
+.card-text {
+    font-size: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tamaño{
+    width: 400px;
+}
+.modal-footer{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+.text{
+    margin-right: 300px;
+}
+/* Cuerpo de la modal */
+.modal-content {
+    width: 100%;
+    color: #fff;
+    background-color: rgba(46, 28, 28, 0.9);
+}
+.modal-body {
+    font-size: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.modal-img {
+    width: 50%;
+    max-height: 100%;
+    object-fit: cover;
+}
+#modalLink {
+    margin: 10px;
+    align-items: center;
+    width: 200px;
+    color: #fff;
+    border: none;
+    background-color: rgba(107, 82, 82, 0.3);
+}
+#modalLink:hover {
+    margin: 10px;
+    align-items: center;
+    width: 200px;
+    color: #fff;
+    background-color: rgba(194, 11, 11, 0.7);
+}
