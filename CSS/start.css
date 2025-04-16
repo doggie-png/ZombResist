@@ -2,7 +2,7 @@
 body{
     width: 100vw;
     height: 100vh;
-    background-image: url('/Imagenes/Fondos/pared\ negra.jpg');
+    background-image: url('/Imagenes/Fondos/pared negra.jpg');
     text-align: center;
     align-items: center;
     font-family: "Oswald", sans-serif;}
@@ -32,6 +32,6 @@ h1{
     }
 }
 img {
-    opacity: 0; /* La imagen está oculta al inicio */
+    opacity: 0; 
     animation: fadeInUp 1s ease-out forwards;
 }

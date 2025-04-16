@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
 
 body {
-    background-image: url('/Imagenes/Fondos/Designer.jpeg');
+    background-image: url('Imagenes/Fondos/Designer.jpeg');
     font-family: "Oswald", sans-serif;
     display: flex;
     flex-direction: column; 

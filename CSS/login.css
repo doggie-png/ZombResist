@@ -77,6 +77,9 @@ a {
 a:hover {
     color: rgb(63, 14, 14);
 }
+p{
+    font-size: 20px;
+}
 @keyframes fadeInUp {
     from {
         opacity: 0;
