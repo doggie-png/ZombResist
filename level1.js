@@ -457,7 +457,7 @@ document.addEventListener('pointerlockchange', () => {
 document.addEventListener('mousemove', (event) => {
   if (document.pointerLockElement !== document.body) return;
 
-  const sensitivity = 0.002;
+  const sensitivity = 0.002; 
   rotation.y -= event.movementX * sensitivity;
   rotation.x -= event.movementY * sensitivity;
 
