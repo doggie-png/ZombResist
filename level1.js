@@ -24,10 +24,6 @@ function CreateFloor(){
 }
 
 function cargaModelos(){
-  
-  //./Level1/ModelosGLB/wooden_watchtower.glb escala 8 nivel de fabrica abandonada
-  
-
   //avionC
   const loaderAvionC = new GLTFLoader();
   loaderAvionC.load('./Level1/ModelosGLB/avionC/ww_plane.glb', (gltf) => {
