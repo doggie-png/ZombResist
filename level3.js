@@ -328,8 +328,6 @@ function cargaModelos(){
     console.error(error); 
   });
 
-  
-
   //tanque metal 
   loaderBuilding5.load('./Level3/ModelosGLB/tank_metal.glb', (gltf) => { 
     const baseModel = gltf.scene;
@@ -474,6 +472,16 @@ function cargaModelos(){
     console.error(error); 
   });
 
+  const loaderWeapon = new GLTFLoader();
+  loaderWeapon.load('./Armas/Shotgun.glb', (gltf) => {
+    weapon = gltf.scene;
+    weapon.scale.set(0.2,0.2,0.2);
+    scene.add(weapon); 
+    weapon.position.set(0,10,0);
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+
 
   //carga con obj
   
@@ -491,13 +499,54 @@ function cargaModelos(){
     });
     militarbox.scale.set(5.5,5.5,5.5);
     scene.add(militarbox);
-    militarbox.position.set(0, 0, -35);
+    militarbox.position.set(0, 0, 0);
   });
 
   //carga con fbx
   
     
   
+}
+
+//Weapons
+let weapon;
+function isNearWeapon(character, weap) {
+  const distance = character.position.distanceTo(weap.position);
+  return distance < 10;
+}
+
+function attachWeaponToCharacter(weapon, character) {
+  // Busca el hueso de la mano del personaje
+  const rightHand = character.getObjectByName("RightHand") || character.getObjectByName("mixamorigRightHand");
+
+  if (rightHand) {
+    rightHand.add(weapon); // adjuntar el arma
+    weapon.position.set(-3, 5, 15); // ajusta según tu modelo
+    weapon.rotation.set(0, 0, 185);
+    weapon.scale.set(1, 1, 1); // ajustar si es necesario
+    scene.remove(weapon);
+    console.log("¡Arma recogida!");
+
+  } else {
+    console.warn("No se encontró el hueso de la mano.");
+  }
+}
+
+//sistema de apuntado
+function updateAim(weapon) {
+  const aimDirection = new THREE.Vector3();
+  camera.getWorldDirection(aimDirection);
+  const targetPos = new THREE.Vector3().copy(camera.position).add(aimDirection.multiplyScalar(10));
+  weapon.lookAt(targetPos); // rota el arma hacia donde mira la cámara
+}
+
+function updateCameraZoom() {
+  if (isAiming) {
+    camera.fov = THREE.MathUtils.lerp(camera.fov, 30, 0.1); // acercar
+  } else {
+    camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1); // normal
+  }
+  camera.updateProjectionMatrix();
 }
 
 let mixer;
@@ -575,6 +624,7 @@ const baseSpeed = 1;
 const runMultiplier = 2;
 const currentSpeed = isRunning ? baseSpeed * runMultiplier : baseSpeed;
 
+//controles de juego
 window.addEventListener('keydown', (event) => {
   switch (event.code) {
     case 'ShiftLeft':
@@ -592,6 +642,26 @@ window.addEventListener('keydown', (event) => {
       break;
     case 'KeyD':
       moveRight = true;
+      break;
+    case 'KeyE':
+      if (isNearWeapon(soldier, weapon)) {
+        attachWeaponToCharacter(weapon, soldier);
+      }      
+      break;
+    case 'KeyC':
+
+      if(!FirstPerson){
+        CamaraX = -2;
+        CamaraY = 33;
+        CamaraZ = 4;
+        FirstPerson = true;
+      }else{
+        CamaraX = 0;
+        CamaraY = 35;
+        CamaraZ = -55;
+        FirstPerson = false;
+      }
+      
       break;
   }
 });
@@ -616,6 +686,24 @@ window.addEventListener('keyup', (event) => {
       break;
   }
 });
+
+let isAiming = false;
+
+window.addEventListener('mousedown', (e) => {
+  if (e.button === 2) { // botón derecho del mouse
+    isAiming = true;
+  }
+});
+
+window.addEventListener('mouseup', (e) => {
+  if (e.button === 2) {
+    isAiming = false;
+  }
+});
+
+
+let FirstPerson = false;
+let CamaraX = 0, CamaraY = 35, CamaraZ = -55;
 let soldier;
 Player();
 //let isMouseDown = false;
@@ -652,10 +740,7 @@ document.addEventListener('mousemove', (event) => {
 
 
 function animate() {
-  //controls.update();
-  //orbitControl.update();
-  //colisiones
-  
+
   const delta = clock.getDelta();
   if (mixer) mixer.update(delta);
 
@@ -702,16 +787,19 @@ function animate() {
     soldier.position.y = 1;
     soldier.quaternion.slerp(targetQuat, 0.2);
 
-    const cameraOffset = new THREE.Vector3(0, 35, -55); //posicion de la camara
+    const cameraOffset = new THREE.Vector3(CamaraX, CamaraY, CamaraZ); //posicion de la camara 35,-55
     cameraOffset.applyQuaternion(soldier.quaternion);
     camera.position.copy(soldier.position).add(cameraOffset);
-    //camera.lookAt(soldier.position);
-    
-    
+
   }
 
- 
-
+  //if (isAiming) {
+    //updateAim(weapon); // solo apunta si estás en modo apuntado
+    // Puedes hacer zoom a la cámara o cambiar posición también
+  //}
+  if(FirstPerson){
+    updateCameraZoom();
+  }
   
 
   renderer.render(scene, camera);
