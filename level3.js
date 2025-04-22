@@ -521,10 +521,11 @@ function attachWeaponToCharacter(weapon, character) {
 
   if (rightHand) {
     rightHand.add(weapon); // adjuntar el arma
-    weapon.position.set(-3, 5, 15); // ajusta según tu modelo
-    weapon.rotation.set(0, 0, 185);
+    weapon.position.set(6, 30, 0); // ajusta según tu modelo -3 5 15
+    weapon.rotation.set(-1.46608, 0, -1.62316); //185
     weapon.scale.set(1, 1, 1); // ajustar si es necesario
     scene.remove(weapon);
+    
     console.log("¡Arma recogida!");
 
   } else {
@@ -553,8 +554,63 @@ let mixer;
 const animationsMap = new Map();
 let currentAction;
 const clock = new THREE.Clock();
+const fbxLoaderAnim = new FBXLoader();
 
+//modelo fbx
 function Player(){
+  const loaderPersonaje = new FBXLoader();
+  loaderPersonaje.load('./personajes/Swat.fbx', (fbx) => {
+    soldier = fbx;
+    soldier.scale.set(0.2, 0.2, 0.2); // ajusta según sea necesario
+    scene.add(soldier);
+
+    //despues de cargar el personaje pordriamos atarle el arma desde aqui
+    mixer = new THREE.AnimationMixer(soldier);
+
+    //playAnimation('Rifle_Idle');
+
+    //idle
+    fbxLoaderAnim.load('./personajes/animaciones/Rifle_Idle.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer.clipAction(anim);
+      animationsMap.set('Rifle_Idle', action);
+    });
+
+    //walk
+    fbxLoaderAnim.load('./personajes/animaciones/Walking.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer.clipAction(anim);
+      animationsMap.set('Walking_Rifle', action);
+    });
+
+    //run
+    fbxLoaderAnim.load('./personajes/animaciones/Rifle Run.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer.clipAction(anim);
+      animationsMap.set('Run_Rifle', action);
+    });
+
+    //picking up
+    fbxLoaderAnim.load('./personajes/animaciones/Picking Up.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer.clipAction(anim);
+      animationsMap.set('Picking_Up', action);
+    });
+
+    //aiming
+    fbxLoaderAnim.load('./personajes/animaciones/Rifle_Aim.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer.clipAction(anim);
+      animationsMap.set('Aim', action);
+    });
+  
+  });
+
+}
+
+
+//modelo glb
+function Player2(){
   //personaje
   const loaderPersonaje = new GLTFLoader();
   loaderPersonaje.load('./personajes/sold.glb', (gltf) => {
@@ -564,14 +620,17 @@ function Player(){
     
     scene.add(soldier); 
     soldier.position.set(0,1,0);
-    //soldier.rotation.z = Math.PI;
-    //camera.position.set(0,85,84);
-    //console.log('Animaciones cargadas:', gltf.animations.map(a => a.name));
     gltf.animations.forEach((clip) => {
       animationsMap.set(clip.name, mixer.clipAction(clip));
     });
   
     playAnimation('Idle'); // animación inicial
+
+    fbxLoaderAnim.load('./personajes/animaciones/Rifle_Idle.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer.clipAction(anim);
+      animationsMap.set('Rifle_Idle', action);
+    });
 
   }, undefined, (error) => {
     console.error(error);
@@ -579,6 +638,28 @@ function Player(){
   });
   
 }
+
+//animaciones de personaje
+function reproducirAnimacionRecoger() {
+  const action = animationsMap.get('Aim');
+  if (!action) return;
+
+  action.reset();
+  action.setLoop(THREE.LoopOnce);
+  action.clampWhenFinished = true;
+  action.play();
+
+  mixer.addEventListener('finished', function callback(e) {
+    if (e.action === action) {
+      // 👇 tu lógica de "recoger"
+      attachWeaponToCharacter(weapon, soldier);
+
+      // 💡 Remueve el listener después de usarlo una vez
+      mixer.removeEventListener('finished', callback);
+    }
+  });
+}
+
 
 
 function playAnimation(name) {
@@ -623,6 +704,7 @@ let isRunning = false;
 const baseSpeed = 1;
 const runMultiplier = 2;
 const currentSpeed = isRunning ? baseSpeed * runMultiplier : baseSpeed;
+let weaponPickUp = false;
 
 //controles de juego
 window.addEventListener('keydown', (event) => {
@@ -645,15 +727,18 @@ window.addEventListener('keydown', (event) => {
       break;
     case 'KeyE':
       if (isNearWeapon(soldier, weapon)) {
+        weaponPickUp = true;
+        //reproducirAnimacionRecoger();
         attachWeaponToCharacter(weapon, soldier);
+        
       }      
       break;
     case 'KeyC':
 
       if(!FirstPerson){
-        CamaraX = -2;
-        CamaraY = 33;
-        CamaraZ = 4;
+        CamaraX = 0;
+        CamaraY = 31;
+        CamaraZ = 6;
         FirstPerson = true;
       }else{
         CamaraX = 0;
@@ -692,6 +777,7 @@ let isAiming = false;
 window.addEventListener('mousedown', (e) => {
   if (e.button === 2) { // botón derecho del mouse
     isAiming = true;
+    reproducirAnimacionRecoger();
   }
 });
 
@@ -746,16 +832,23 @@ function animate() {
 
   const isMoving = moveForward || moveBackward || moveLeft || moveRight;
 
+  
+
   if (isMoving) {
+
     if(isRunning){
-      playAnimation('Run');  
+      playAnimation('Run_Rifle');  
     }else{
-      playAnimation('Walk');
+      playAnimation('Walking_Rifle');
     }
     
-  } else {
-    playAnimation('Idle');
-
+  }else{
+    if(weaponPickUp){
+      playAnimation('Picking_Up');
+      weaponPickUp = false;
+    }else{
+      playAnimation('Rifle_Idle');
+    }
   }
 
   const direction = new THREE.Vector3();  // Esta es la dirección de movimiento del soldado
@@ -793,12 +886,12 @@ function animate() {
 
   }
 
-  //if (isAiming) {
-    //updateAim(weapon); // solo apunta si estás en modo apuntado
-    // Puedes hacer zoom a la cámara o cambiar posición también
-  //}
+  
+
   if(FirstPerson){
+  
     updateCameraZoom();
+    
   }
   
 
