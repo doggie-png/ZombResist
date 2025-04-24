@@ -239,6 +239,7 @@ function cargaModelos(){
     camion.scale.set(22,22,22);
     scene.add(camion); 
     camion.position.set(300,0,300);
+    camion.name="gasTank";
     
   }, undefined, (error) => {
     console.error(error); 
@@ -472,15 +473,27 @@ function cargaModelos(){
     console.error(error); 
   });
 
+  //ShotGun
   const loaderWeapon = new GLTFLoader();
   loaderWeapon.load('./Armas/Shotgun.glb', (gltf) => {
     weapon = gltf.scene;
-    weapon.scale.set(0.2,0.2,0.2);
+    weapon.scale.set(0.2,0.2,0.2); //m78 0.02 ak47=1
     scene.add(weapon); 
     weapon.position.set(0,10,0);
   }, undefined, (error) => {
     console.error(error); 
   });
+
+  const loaderMedic = new GLTFLoader();
+  loaderMedic.load('./personajes/Medic_pack.glb', (gltf) => {
+    const Medic = gltf.scene;
+    Medic.scale.set(1,1,1);
+    scene.add(Medic); 
+    Medic.position.set(0,15,0);
+  }, undefined, (error) => {
+    console.error(error); 
+  });
+  
 
 
   //carga con obj
@@ -515,23 +528,106 @@ function isNearWeapon(character, weap) {
   return distance < 10;
 }
 
+const firePoint = new THREE.Object3D();
 function attachWeaponToCharacter(weapon, character) {
-  // Busca el hueso de la mano del personaje
+  
   const rightHand = character.getObjectByName("RightHand") || character.getObjectByName("mixamorigRightHand");
 
   if (rightHand) {
-    rightHand.add(weapon); // adjuntar el arma
-    weapon.position.set(6, 30, 0); // ajusta según tu modelo -3 5 15
-    weapon.rotation.set(-1.46608, 0, -1.62316); //185
-    weapon.scale.set(1, 1, 1); // ajustar si es necesario
+    rightHand.add(weapon);
+    weapon.position.set(10, 33, 0); //
+    weapon.rotation.set(-1.65806, 0, -1.5708); //185
+    weapon.scale.set(1, 1, 1); // shotgun=0.1 mp40=75 m78=0.1 ak47=10
     scene.remove(weapon);
+
     
+    weapon.add(firePoint); // arma = modelo de arma (Mesh o Group)
+    firePoint.position.set(0, 0, 28);
+
     console.log("¡Arma recogida!");
 
   } else {
     console.warn("No se encontró el hueso de la mano.");
   }
 }
+
+
+
+//disparo con proyectil en vez de rayo
+const Projectilegeometry = new THREE.SphereGeometry(0.1, 8, 8);
+const Projectilematerial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+function createProjectile(position, direction) {
+  
+  const projectile = new THREE.Mesh(Projectilegeometry, Projectilematerial);
+
+  projectile.position.copy(position);
+  scene.add(projectile);
+
+  // Guardamos la dirección para usarla en el update
+  projectile.userData.velocity = direction.clone().multiplyScalar(2); // velocidad ajustable
+  projectile.userData.traveledDistance = 0;
+  return projectile;
+}
+
+const raycaster = new THREE.Raycaster();
+
+function updateProjectiles() {
+  for (let i = 0; i < projectiles.length; i++) {
+      const p = projectiles[i];
+      const targetObjects = [camion];
+      
+      const deltaMove = p.userData.velocity.length();
+      p.userData.traveledDistance += deltaMove;
+
+      // Limite de distancia (ajustable)
+      const maxDistance = 100; // unidades del mundo
+
+      if (p.userData.traveledDistance > maxDistance) {
+          scene.remove(p);
+          projectiles.splice(i, 1);
+          i--;
+          continue;
+      }
+
+
+        //colision
+        raycaster.set(p.position.clone(), p.userData.velocity.clone().normalize());
+        const intersects = raycaster.intersectObjects(targetObjects, true);
+        if (intersects.length > 0 && intersects[0].distance < p.userData.velocity.length()) {
+            const hit = intersects[0];
+
+            console.log('💥 Proyectil impactó:', hit.object.name);
+
+            // Eliminar el objeto golpeado (opcional)
+            //scene.remove(hit.object);
+            //if (hit.object.geometry) hit.object.geometry.dispose();
+            //if (hit.object.material) {
+              //  if (Array.isArray(hit.object.material)) {
+                  //  hit.object.material.forEach(m => m.dispose());
+                //} else {
+                    //hit.object.material.dispose();
+                //}
+            //}
+
+            // Eliminar el proyectil
+            scene.remove(p);
+            projectiles.splice(i, 1);
+            i--;
+
+            continue; // saltar el movimiento si ya impactó
+        }
+
+      p.position.add(p.userData.velocity);
+
+      // Si se aleja mucho, lo borramos
+      if (p.position.length() > 1000) {
+          scene.remove(p);
+          projectiles.splice(i, 1);
+          i--;
+      }
+  }
+}
+
 
 //sistema de apuntado
 function updateAim(weapon) {
@@ -608,7 +704,6 @@ function Player(){
 
 }
 
-
 //modelo glb
 function Player2(){
   //personaje
@@ -638,7 +733,6 @@ function Player2(){
   });
   
 }
-
 //animaciones de personaje
 function reproducirAnimacionRecoger() {
   const action = animationsMap.get('Aim');
@@ -651,16 +745,12 @@ function reproducirAnimacionRecoger() {
 
   mixer.addEventListener('finished', function callback(e) {
     if (e.action === action) {
-      // 👇 tu lógica de "recoger"
+      
       attachWeaponToCharacter(weapon, soldier);
-
-      // 💡 Remueve el listener después de usarlo una vez
       mixer.removeEventListener('finished', callback);
     }
   });
 }
-
-
 
 function playAnimation(name) {
   const newAction = animationsMap.get(name);
@@ -692,6 +782,7 @@ scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 2); // Luz direccional (como el sol)
 directionalLight.position.set(100, 100, 100).normalize(); // Posición de la luz
 scene.add(directionalLight);
+
 
 CreateSkyBox();
 CreateFloor();
@@ -796,10 +887,20 @@ Player();
 
 
 let rotation = { x: 0, y: 0 };
+const shootDirection = new THREE.Vector3();
 
+const origin = new THREE.Vector3();
+const projectiles = [];
 // Entrar en modo pointer lock al hacer clic
 document.body.addEventListener('click', () => {
   document.body.requestPointerLock();
+  if (projectiles.length >= 5) return;
+  shootDirection.y +=0.01;
+  shootDirection.x -=0.05;
+  shootDirection.normalize();
+  const projectile = createProjectile(origin, shootDirection);
+  projectiles.push(projectile);
+  
 });
 
 document.addEventListener('pointerlockchange', () => {
@@ -822,7 +923,6 @@ document.addEventListener('mousemove', (event) => {
   quat.setFromEuler(new THREE.Euler(rotation.x, rotation.y, 0, 'YXZ'));
   camera.quaternion.copy(quat);
 });
-
 
 
 function animate() {
@@ -884,9 +984,15 @@ function animate() {
     cameraOffset.applyQuaternion(soldier.quaternion);
     camera.position.copy(soldier.position).add(cameraOffset);
 
+    //pal disparo
+    //camera.getWorldPosition(origin);
+    camera.getWorldDirection(shootDirection);
+    firePoint.getWorldPosition(origin);
+    
+    
   }
 
-  
+  updateProjectiles();
 
   if(FirstPerson){
   
