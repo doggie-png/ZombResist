@@ -559,7 +559,6 @@ const Projectilematerial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
 function createProjectile(position, direction) {
   
   const projectile = new THREE.Mesh(Projectilegeometry, Projectilematerial);
-
   projectile.position.copy(position);
   scene.add(projectile);
 
@@ -569,8 +568,55 @@ function createProjectile(position, direction) {
   return projectile;
 }
 
-const raycaster = new THREE.Raycaster();
+let lastShotTime = 0;
+let fireRate = 200; // escopeta = 1000, rifle = 500, metralla = 200
+const maxDistance = 100; // cambia la distancia segun el arma
+let isShooting = false;
+let currentWeapon = "burst";
 
+function shootShotgun(position, direction) {
+  const spreadAngle = 10 * (Math.PI / 180); // 10 grados de dispersión
+  for (let i = 0; i < 4; i++) {
+    const angleOffset = (Math.random() - 0.5) * spreadAngle;
+    
+    // Clonamos la dirección y le aplicamos una rotación pequeña
+    const spreadDir = direction.clone();
+    spreadDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), angleOffset); // Ajusta el eje si es necesario
+
+    const projectile = createProjectile(position, spreadDir);
+    projectiles.push(projectile);
+  }
+}
+
+function shootBurst(position, direction, burstCount = 3, delay = 100) {
+  for (let i = 0; i < burstCount; i++) {
+    setTimeout(() => {
+      const projectile = createProjectile(position.clone(), direction.clone());
+      projectiles.push(projectile);
+    }, i * delay);
+  }
+}
+
+function shoot(position, direction, currentTime, mode = "burst") {
+  if (currentTime - lastShotTime >= fireRate) {
+    lastShotTime = currentTime;
+
+    switch (mode) {
+      case "shotgun":
+        shootShotgun(origin, direction);
+        break;
+      case "burst":
+        shootBurst(origin, direction); // dispara ráfaga
+        break;
+      default:
+        const projectile = createProjectile(position, direction);
+        projectiles.push(projectile);
+        break;
+    }
+  }
+}
+
+const raycaster = new THREE.Raycaster();
 function updateProjectiles() {
   for (let i = 0; i < projectiles.length; i++) {
       const p = projectiles[i];
@@ -580,7 +626,7 @@ function updateProjectiles() {
       p.userData.traveledDistance += deltaMove;
 
       // Limite de distancia (ajustable)
-      const maxDistance = 100; // unidades del mundo
+      
 
       if (p.userData.traveledDistance > maxDistance) {
           scene.remove(p);
@@ -819,6 +865,7 @@ window.addEventListener('keydown', (event) => {
     case 'KeyE':
       if (isNearWeapon(soldier, weapon)) {
         weaponPickUp = true;
+        PickUpAnimation = true;
         //reproducirAnimacionRecoger();
         attachWeaponToCharacter(weapon, soldier);
         
@@ -866,15 +913,24 @@ window.addEventListener('keyup', (event) => {
 let isAiming = false;
 
 window.addEventListener('mousedown', (e) => {
+  
   if (e.button === 2) { // botón derecho del mouse
     isAiming = true;
-    reproducirAnimacionRecoger();
+    reproducirAnimacionRecoger(); // esta wea es apuntar no recoger segun yo alch ya no se jajajajja
   }
+
+  if (e.button === 0) { 
+    isShooting = true;
+  }
+
 });
 
 window.addEventListener('mouseup', (e) => {
   if (e.button === 2) {
     isAiming = false;
+  }
+  if (e.button === 0) { 
+    isShooting = false;
   }
 });
 
@@ -887,19 +943,18 @@ Player();
 
 
 let rotation = { x: 0, y: 0 };
-const shootDirection = new THREE.Vector3();
+//const shootDirection = new THREE.Vector3();
+const screenCenter = new THREE.Vector2(0, 0);
+const raycaster2 = new THREE.Raycaster();
 
 const origin = new THREE.Vector3();
 const projectiles = [];
+
 // Entrar en modo pointer lock al hacer clic
 document.body.addEventListener('click', () => {
-  document.body.requestPointerLock();
-  if (projectiles.length >= 5) return;
-  shootDirection.y +=0.01;
-  shootDirection.x -=0.05;
-  shootDirection.normalize();
-  const projectile = createProjectile(origin, shootDirection);
-  projectiles.push(projectile);
+  if (document.pointerLockElement !== document.body) {
+    document.body.requestPointerLock();
+  }
   
 });
 
@@ -924,6 +979,7 @@ document.addEventListener('mousemove', (event) => {
   camera.quaternion.copy(quat);
 });
 
+let PickUpAnimation = false;
 
 function animate() {
 
@@ -943,9 +999,9 @@ function animate() {
     }
     
   }else{
-    if(weaponPickUp){
+    if(PickUpAnimation){
       playAnimation('Picking_Up');
-      weaponPickUp = false;
+      PickUpAnimation = false;
     }else{
       playAnimation('Rifle_Idle');
     }
@@ -985,9 +1041,19 @@ function animate() {
     camera.position.copy(soldier.position).add(cameraOffset);
 
     //pal disparo
-    //camera.getWorldPosition(origin);
-    camera.getWorldDirection(shootDirection);
+    raycaster2.setFromCamera(screenCenter, camera);
+    //camera.getWorldDirection(shootDirection);
     firePoint.getWorldPosition(origin);
+    if(weaponPickUp){
+      //if (projectiles.length >= 5) return;
+      if(isShooting){
+      const currentTime = performance.now();
+      const targetPoint = raycaster2.ray.origin.clone().add(raycaster2.ray.direction.clone().multiplyScalar(100));
+      const direction = targetPoint.clone().sub(origin).normalize();
+      shoot(origin, direction, currentTime, currentWeapon); // shotgun or single
+      }
+      
+    }
     
     
   }
