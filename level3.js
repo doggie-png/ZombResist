@@ -572,7 +572,28 @@ let lastShotTime = 0;
 let fireRate = 200; // escopeta = 1000, rifle = 500, metralla = 200
 const maxDistance = 100; // cambia la distancia segun el arma
 let isShooting = false;
-let currentWeapon = "burst";
+let currentWeapon = "shotgun"; //burst para metralla, shotgun para escopeta, rifle para single shot
+let ammo = 8;
+
+function reloadAmmo(typeWeapon) {
+  
+  switch(typeWeapon){
+    case "rifle":
+      ammo = 8;
+      break;
+    case "shotgun":
+      ammo = 4;
+      break;
+    case "metralla":
+      ammo = 30;
+      break;
+  }
+  updateAmmoUI();
+}
+
+function updateAmmoUI() {
+  document.getElementById("ammoDisplay").textContent = `Balas: ${ammo}`;
+}
 
 function shootShotgun(position, direction) {
   const spreadAngle = 10 * (Math.PI / 180); // 10 grados de dispersión
@@ -597,9 +618,10 @@ function shootBurst(position, direction, burstCount = 3, delay = 100) {
   }
 }
 
-function shoot(position, direction, currentTime, mode = "burst") {
-  if (currentTime - lastShotTime >= fireRate) {
+function shoot(position, direction, currentTime, mode) {
+  if (currentTime - lastShotTime >= fireRate && ammo > 0) {
     lastShotTime = currentTime;
+    ammo--;
 
     switch (mode) {
       case "shotgun":
@@ -608,12 +630,16 @@ function shoot(position, direction, currentTime, mode = "burst") {
       case "burst":
         shootBurst(origin, direction); // dispara ráfaga
         break;
-      default:
+      case "rifle":
         const projectile = createProjectile(position, direction);
         projectiles.push(projectile);
         break;
     }
-  }
+
+    updateAmmoUI();
+
+
+  } //else if(ammo <= 0){sonido de vacio o alerta de sin balas}
 }
 
 const raycaster = new THREE.Raycaster();
@@ -866,6 +892,7 @@ window.addEventListener('keydown', (event) => {
       if (isNearWeapon(soldier, weapon)) {
         weaponPickUp = true;
         PickUpAnimation = true;
+        // aqui poner la cantidad de municion segun el arma que se recoja
         //reproducirAnimacionRecoger();
         attachWeaponToCharacter(weapon, soldier);
         
@@ -885,6 +912,9 @@ window.addEventListener('keydown', (event) => {
         FirstPerson = false;
       }
       
+      break;
+    case 'KeyR':
+      reloadAmmo(currentWeapon);
       break;
   }
 });
