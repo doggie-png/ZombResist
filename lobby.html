@@ -22,15 +22,15 @@
                 <div class="lista-personajes">
                     <div class="personaje">
                         <img src="Imagenes/character/1.1.png" alt="Personaje 1">
-                        <button class="btn personaje-btn" data-img="/Imagenes/character/1.png">Personaje 1</button>
+                        <button class="btn personaje-btn" data-img="/Imagenes/character/1.png" onclick="Personaje('mono1')" >Personaje 1</button>
                     </div>
                     <div class="personaje">
                         <img src="Imagenes/character/2.2.png" alt="Personaje 2">
-                        <button class="btn personaje-btn" data-img="/Imagenes/character/2.png">Personaje 2</button>
+                        <button class="btn personaje-btn" data-img="/Imagenes/character/2.png" onclick="Personaje('Swat')" >Personaje 2</button>
                     </div>
                     <div class="personaje">
                         <img src="Imagenes/character/3.3.png" alt="Personaje 3">
-                        <button class="btn personaje-btn" data-img="/Imagenes/character/3.png">Personaje 3</button>
+                        <button class="btn personaje-btn" data-img="/Imagenes/character/3.png" onclick="Personaje('na')">Personaje 3</button>
                     </div>
                 </div>
             </div>
@@ -40,11 +40,11 @@
                 <div class="lista-armas">
                     <div class="arma">
                         <img src="Imagenes/Wp/rf.png" alt="Arma 1">
-                        <button class="btn arma-btn">Arma 1</button>
+                        <button class="btn arma-btn" onclick="Arma('m78')">Arma 1</button>
                     </div>
                     <div class="arma">
                         <img src="Imagenes/Wp/sh.png" alt="Arma 2">
-                        <button class="btn arma-btn">Arma 2</button>
+                        <button class="btn arma-btn" onclick="Arma('Shotgun')">Arma 2</button>
                     </div>
                 </div>
             </div>
@@ -68,15 +68,15 @@
             <h3>Selecciona un Mapa:</h3>
             <div class="mapa">
                 <img src="Imagenes/Fondos/Designer (1).jpeg" alt="Mapa 1">
-                <button class="btn mapa-btn">Apocalyptic City</button>
+                <button class="btn mapa-btn" onclick="Mapa('ciudad')">Apocalyptic City</button>
             </div>
             <div class="mapa">
                 <img src="Imagenes/Fondos/mapa 1.jpeg" alt="Mapa 2">
-                <button class="btn mapa-btn">Pista de aterrizaje</button>
+                <button class="btn mapa-btn" onclick="Mapa('militar')">Old Military Base</button>
             </div>
             <div class="mapa">
                 <img src="Imagenes/Fondos/mapa (1).jpeg" alt="Mapa 2">
-                <button class="btn mapa-btn">Bodega</button>
+                <button class="btn mapa-btn" onclick="Mapa('fabrica')">Abandoned Factory</button>
             </div>
         </div>           
         </div>
@@ -94,29 +94,30 @@
                 <div class="dificultad-container">
                     <div class="zombie">
                         <img src="Imagenes/Zomb/Captura de pantalla 2025-03-07 131630.png" alt="Fácil">
-                        <button class="btn zombie-btn" data-dificultad="Fácil">Fácil</button>
+                        <button class="btn zombie-btn" data-dificultad="Fácil" onclick="Dificultad('Facil')">Fácil</button>
                     </div>
                     <div class="zombie">
                         <img src="Imagenes/Zomb/Captura de pantalla 2025-03-07 131239.png" alt="Normal">
-                        <button class="btn zombie-btn" data-dificultad="Normal">Normal</button>
+                        <button class="btn zombie-btn" data-dificultad="Normal" onclick="Dificultad('Normal')">Normal</button>
                     </div>
                     <div class="zombie">
                         <img src="Imagenes/Zomb/Captura de pantalla 2025-03-07 131252.png" alt="Difícil">
-                        <button class="btn zombie-btn" data-dificultad="Difícil">Difícil</button>
+                        <button class="btn zombie-btn" data-dificultad="Difícil" onclick="Dificultad('Dificil')">Difícil</button>
                     </div>
                     <div class="zombie">
                         <img src="Imagenes/Zomb/Captura de pantalla 2025-03-07 131257.png" alt="Extremo">
-                        <button class="btn zombie-btn" data-dificultad="Extremo">Extremo</button>
+                        <button class="btn zombie-btn" data-dificultad="Extremo" onclick="Dificultad('Extremo')">Extremo</button>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button onclick="window.location.href='play.html'" id="iniciarJuego" class="btn">Iniciar</button>
+                    <button onclick="window.location.href='levelPruebas.html'" id="iniciarJuego" class="btn">Iniciar</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
     <script src="JS/menu.js"></script>
+    <script src="SetUpLevel.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
