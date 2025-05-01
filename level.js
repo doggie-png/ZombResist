@@ -3,6 +3,7 @@ import { GLTFLoader } from "/three.js-master/examples/jsm/loaders/GLTFLoader.js"
 import { OBJLoader } from "/three.js-master/examples/jsm/loaders/OBJLoader.js";
 import { FBXLoader } from "/three.js-master/examples/jsm/loaders/FBXLoader.js";
 import { CargarModelos } from './CargarModelosMapa.js';
+import { explosion } from './shaders.js';
 
 const Personaje = localStorage.getItem('Personaje');
 const Arma = localStorage.getItem('Arma');
@@ -19,12 +20,16 @@ const raycaster = new THREE.Raycaster();
 
 //variables de animacion y personaje
 let mixer;
+let mixer2;
 let isAiming = false;
 const animationsMap = new Map();
+const animationsMap2 = new Map();
 let currentAction;
+let currentAction2;
 let PickUpAnimation = false;
 const clock = new THREE.Clock();
 const fbxLoaderAnim = new FBXLoader();
+const fbxLoaderAnim2 = new FBXLoader();
 
 //variables de arma y disparo
 let lastShotTime = 0;
@@ -33,15 +38,19 @@ let maxDistance = 0;
 let isShooting = false;
 let currentWeapon = "shotgun";
 let ammo = 0; 
+let ammoMax = 0;
+let damageWeapon = 0;
 const screenCenter = new THREE.Vector2(0, 0);
 const raycaster2 = new THREE.Raycaster();
 const origin = new THREE.Vector3();
 const projectiles = [];
 
+//variables enemigos
+let enemylife = 100;
 //controls camara y acciones
 let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
 let isRunning = false;
-//let speed = 1;
+let speed = 20;
 const baseSpeed = 1;
 const runMultiplier = 2;
 const currentSpeed = isRunning ? baseSpeed * runMultiplier : baseSpeed;
@@ -51,6 +60,9 @@ let CamaraX = 0, CamaraY = 35, CamaraZ = -55;
 let soldier;
 let rotation = { x: 0, y: 0 };
 
+//enemigos
+let Zombie;
+let Atack = false;
 //escena
 function CreateSkyBox(){
   const loaderSkyBox = new THREE.CubeTextureLoader();
@@ -133,6 +145,7 @@ function CargaArma(){
         fireRate = 1000;
         maxDistance = 100;
         ammo = 4;
+        damageWeapon = 25;
     }
 
     if(Arma === "m78"){
@@ -149,6 +162,7 @@ function CargaArma(){
         fireRate = 500;
         maxDistance = 220;
         ammo = 8;
+        damageWeapon = 80;
     }
 
     if(Arma === "ak47"){
@@ -165,13 +179,14 @@ function CargaArma(){
         fireRate = 200;
         maxDistance = 175;
         ammo = 30;
+        damageWeapon = 60;
     }
   
 }
 
 function isNearWeapon(character, weap) {
     const distance = character.position.distanceTo(weap.position);
-    return distance < 10;
+    return distance < 30;
 }
 
 function attachWeaponToCharacter(weapon, character) {
@@ -180,9 +195,33 @@ function attachWeaponToCharacter(weapon, character) {
   
     if (rightHand) {
       rightHand.add(weapon);
-      weapon.position.set(10, 33, 0); //
-      weapon.rotation.set(-1.65806, 0, -1.5708); //185
-      weapon.scale.set(1, 1, 1); // shotgun=0.1 mp40=75 m78=0.1 ak47=10
+      
+      switch (Arma) {
+        case "Shotgun":
+          weapon.position.set(10, 33, 0); //
+          weapon.rotation.set(-1.65806, 0, -1.5708); //185
+          weapon.scale.set(1, 1, 1); // shotgun=0.1 mp40=75 m78=0.1 ak47=10    
+          ammo = 4;
+          ammoMax = 12;
+          break;
+        case "m78":
+          
+          weapon.position.set(5, 43, 2.5); //y,x,z?
+          weapon.rotation.set(3.14159, 0, -1.5708); //185
+          weapon.scale.set(0.11, 0.11, 0.11);
+          ammo = 8;
+          ammoMax = 24;
+          break;
+        case "ak47":
+          weapon.position.set(10, 33, 0);
+          weapon.rotation.set(-1.65806, 0, -1.5708); //185
+          weapon.scale.set(0.1, 0.1, 0.1);
+          ammo = 30;
+          ammoMax = 90;
+          break;
+        
+      }
+      updateAmmoUI();
       scene.remove(weapon);
   
       
@@ -227,12 +266,30 @@ function reloadAmmo(typeWeapon) {
   switch(typeWeapon){
     case "rifle":
       ammo = 8;
+      if(ammoMax>0){
+        ammoMax = ammoMax - 8;
+      }else{
+        ammoMax=0;
+      }
+      
       break;
     case "shotgun":
       ammo = 4;
+      if(ammoMax>0){
+        ammoMax = ammoMax - 4;
+      }else{
+        ammoMax=0;
+      }
+      
       break;
     case "metralla":
       ammo = 30;
+      if(ammoMax>0){
+        ammoMax = ammoMax - 30;
+      }else{
+        ammoMax=0;
+      }
+      
       break;
   }
   updateAmmoUI();
@@ -240,6 +297,7 @@ function reloadAmmo(typeWeapon) {
 
 function updateAmmoUI() {
   document.getElementById("ammoDisplay").textContent = `Balas: ${ammo}`;
+  document.getElementById("ammoDisplay2").textContent = `/ ${ammoMax}`;
 }
 
 function shootShotgun(position, direction) {
@@ -289,6 +347,8 @@ function shoot(position, direction, currentTime, mode) {
   } //else if(ammo <= 0){sonido de vacio o alerta de sin balas}
 }
 
+let explota = false;
+let balasImpactadas = 0;
 function updateProjectiles() {
     for (let i = 0; i < projectiles.length; i++) {
         const p = projectiles[i];
@@ -313,26 +373,32 @@ function updateProjectiles() {
           const intersects = raycaster.intersectObjects(targetObjects, true);
           if (intersects.length > 0 && intersects[0].distance < p.userData.velocity.length()) {
               const hit = intersects[0];
-  
-              console.log('💥 Proyectil impactó:', hit.object.name);
-  
-              // Eliminar el objeto golpeado (opcional)
-              //scene.remove(hit.object);
-              //if (hit.object.geometry) hit.object.geometry.dispose();
-              //if (hit.object.material) {
-                //  if (Array.isArray(hit.object.material)) {
-                    //  hit.object.material.forEach(m => m.dispose());
-                  //} else {
-                      //hit.object.material.dispose();
-                  //}
-              //}
+              balasImpactadas =  + 1;
+              console.log('💥 Proyectil impactó:', hit.object.name, balasImpactadas);
+              if(balasImpactadas>0){
+                if(enemylife>0){
+                  let damage = damageWeapon * balasImpactadas;
+                  enemylife = enemylife - damage;
+                  if(enemylife<0){
+                    enemylife = 0;
+                  }
+                }
+                console.log(enemylife);
+              }
+              explota = true;
+              
+              if(enemylife<=0){
+                scene.remove(TanqueGas);
+              }
+              
+              
   
               // Eliminar el proyectil
               scene.remove(p);
               projectiles.splice(i, 1);
               i--;
   
-              continue; // saltar el movimiento si ya impactó
+              continue;
           }
   
         p.position.add(p.userData.velocity);
@@ -342,8 +408,12 @@ function updateProjectiles() {
             scene.remove(p);
             projectiles.splice(i, 1);
             i--;
+            explota = false;
         }
-    }
+        
+        
+    } 
+    
 }
 
 function updateAim(weapon) {
@@ -413,6 +483,78 @@ function Player(){
 
 }
 
+function Enemy(){
+  const loaderPersonaje = new FBXLoader();
+  loaderPersonaje.load('./enemy/Zombie_cop.fbx', (fbx) => {
+    Zombie = fbx;
+    Zombie.scale.set(0.2, 0.2, 0.2); // ajusta según sea necesario
+    Zombie.position.set(80,0,80);
+    scene.add(Zombie);
+
+    //despues de cargar el personaje pordriamos atarle el arma desde aqui
+    mixer2 = new THREE.AnimationMixer(Zombie);
+
+    //playAnimation('Rifle_Idle');
+
+    //idle
+    fbxLoaderAnim2.load('./enemy/animaciones/Zombie_Idle.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer2.clipAction(anim);
+      animationsMap2.set('Zombie_Idle', action);
+    });
+
+    //walk
+    fbxLoaderAnim2.load('./enemy/animaciones/Zombie_Running.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer2.clipAction(anim);
+      animationsMap2.set('Zombie_Walking', action);
+    });
+
+    //run
+    fbxLoaderAnim2.load('./enemy/animaciones/Zombie_Scream.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer2.clipAction(anim);
+      animationsMap2.set('Zombie_Scream', action);
+    });
+
+    //picking up
+    fbxLoaderAnim2.load('./enemy/animaciones/Zombie_Attack.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer2.clipAction(anim);
+      animationsMap2.set('Zombie_Attack', action);
+    });
+
+    //aiming
+    fbxLoaderAnim2.load('./enemy/animaciones/Zombie_Death.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer2.clipAction(anim);
+      animationsMap2.set('Zombie_Death', action);
+    });
+  
+  });
+  playAnimation2('Zombie_Idle');
+
+}
+
+function moveEnemyTowardPlayer(enemy, playerPosition, speed, delta) {
+  const direction = new THREE.Vector3().subVectors(playerPosition, enemy.position);
+  const distance = direction.length();
+
+  if (distance > 30) { // evitar que se pegue exactamente
+    Atack = false;
+    direction.normalize();
+    const velocity = direction.multiplyScalar(speed * delta);
+    enemy.position.add(velocity);
+
+    // Opcional: girar el enemigo para que mire al jugador
+    enemy.lookAt(playerPosition);
+  }
+
+  if(distance<30){
+    Atack = true;
+  }
+}
+
 function reproducirAnimacionRecoger() {
   const action = animationsMap.get('Aim');
   if (!action) return;
@@ -443,6 +585,18 @@ function playAnimation(name) {
     currentAction = newAction;
 }
 
+function playAnimation2(name) {
+  const newAction = animationsMap2.get(name);
+  if (!newAction || newAction === currentAction2) return;
+
+  if (currentAction2) {
+    currentAction2.fadeOut(0.2); // suaviza la transición
+  }
+
+  newAction.reset().fadeIn(0.2).play();
+  currentAction2 = newAction;
+}
+
 //configuramos escena
 // SCENE
 const scene = new THREE.Scene();
@@ -457,7 +611,7 @@ document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(animate);
 
 // Luces
-const ambientLight = new THREE.AmbientLight(0x404040, 2); // Luz ambiental suave
+const ambientLight = new THREE.AmbientLight(0x404040, 4); // Luz ambiental suave
 scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 2); // Luz direccional (como el sol)
 directionalLight.position.set(100, 100, 100).normalize(); // Posición de la luz
@@ -469,6 +623,8 @@ CargarModelos(Mapa,scene);
 ObjectosDisparar();
 CargaArma();
 Player();
+Enemy();
+
 
 
 //agregamos los eventos/controles
@@ -597,6 +753,7 @@ function animate() {
 
   const delta = clock.getDelta();
   if (mixer) mixer.update(delta);
+  if (mixer2) mixer2.update(delta);
 
   const isMoving = moveForward || moveBackward || moveLeft || moveRight;
 
@@ -605,7 +762,8 @@ function animate() {
   if (isMoving) {
 
     if(isRunning){
-      playAnimation('Run_Rifle');  
+      playAnimation('Run_Rifle');
+      
     }else{
       playAnimation('Walking_Rifle');
     }
@@ -663,6 +821,10 @@ function animate() {
       const targetPoint = raycaster2.ray.origin.clone().add(raycaster2.ray.direction.clone().multiplyScalar(100));
       const direction = targetPoint.clone().sub(origin).normalize();
       shoot(origin, direction, currentTime, currentWeapon); // shotgun or single
+      
+      
+      }else{
+        balasImpactadas = 0;
       }
       
     }
@@ -670,6 +832,36 @@ function animate() {
     
   }
 
+  if(Zombie){
+    
+
+    if (isMoving) {
+      playAnimation2('Zombie_Walking');
+      if(soldier){
+        moveEnemyTowardPlayer(Zombie, soldier.position, 120, delta); // 2 = velocidad
+      }
+      if(Atack){
+        playAnimation2('Zombie_Attack');  
+        
+      }
+      
+      
+      
+    }else{
+      if(Atack){
+        playAnimation2('Zombie_Attack');  
+      }else{
+        playAnimation2('Zombie_Idle');  
+      }
+      
+    }
+
+    
+
+  }
+
+
+  
   updateProjectiles();
 
   if(FirstPerson){
@@ -678,7 +870,6 @@ function animate() {
     
   }
   
-
   renderer.render(scene, camera);
 }
 
