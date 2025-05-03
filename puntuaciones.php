@@ -98,7 +98,7 @@
 
   function compartirResultado(puntos) {
   const jugador = 'Fulano66'; 
-  const url = `https://tudominio.com/ZombResist/compartir.php?jugador=${encodeURIComponent(jugador)}&puntos=${puntos}`;
+  const url = `https://www.facebook.com/profile.php?id=61573590247535`;
 
   FB.ui({
     method: 'share',
