@@ -20,7 +20,7 @@ const raycaster = new THREE.Raycaster();
 
 //variables de animacion y personaje
 let mixer;
-let mixer2;
+
 let isAiming = false;
 const animationsMap = new Map();
 const animationsMap2 = new Map();
@@ -46,7 +46,17 @@ const origin = new THREE.Vector3();
 const projectiles = [];
 
 //variables enemigos
+let Enemigos = [];
+let mixer2;
 let enemylife = 100;
+
+
+//varoables de jugabilidad idk ando re perdido
+let SoldierLife = 100;
+let TiempoPartida = 60;
+let EnemigosM = 0;
+let EnemigosTotales = 3;
+
 //controls camara y acciones
 let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
 let isRunning = false;
@@ -236,17 +246,24 @@ function attachWeaponToCharacter(weapon, character) {
 }
 
 function ObjectosDisparar(){ //aqui van los objetos para que el disparo se detecte y FUNCIONE
-    const loaderBuilding3 = new GLTFLoader();
-    loaderBuilding3.load('./Level3/ModelosGLB/rusty_gas_tank.glb', (gltf) => {
+  const loaderBuilding3 = new GLTFLoader();
+  loaderBuilding3.load('./Level3/ModelosGLB/rusty_gas_tank.glb', (gltf) => {
          TanqueGas = gltf.scene;
         TanqueGas.scale.set(22,22,22);
         scene.add(TanqueGas); 
+        targetObjects.push(TanqueGas); // re importante agregar esto
         TanqueGas.position.set(50,0,50);
         TanqueGas.name="gasTank";
         
       }, undefined, (error) => {
         console.error(error); 
-      });
+  });
+  
+  const loaderEnemy = new GLTFLoader();
+  loaderEnemy.load('./Level3/ModelosGLB/rusty_gas_tank.glb', (gltf) => {
+      
+  });
+  
 }
 
 function createProjectile(position, direction) {
@@ -347,13 +364,70 @@ function shoot(position, direction, currentTime, mode) {
   } //else if(ammo <= 0){sonido de vacio o alerta de sin balas}
 }
 
+function eliminarZombie(objetoFBX, mixer = null) {
+  
+  // 1. Detener animaciones si hay mixer
+  if (mixer) {
+    mixer.stopAllAction();
+    mixer.uncacheRoot(objetoFBX);
+  }
+
+  // 2. Remover de la escena
+  scene.remove(objetoFBX);
+
+  // 3. Liberar memoria de todos los hijos (mallas, geometrías, texturas, materiales)
+  objetoFBX.traverse((child) => {
+    if (child.isMesh) {
+      // Liberar geometría
+      if (child.geometry) {
+        child.geometry.dispose();
+      }
+
+      // Liberar materiales y texturas asociadas
+      const materiales = Array.isArray(child.material)
+        ? child.material
+        : [child.material];
+
+      materiales.forEach((material) => {
+        if (!material) return;
+
+        // Liberar texturas asociadas al material
+        const mapas = [
+          'map',
+          'normalMap',
+          'roughnessMap',
+          'metalnessMap',
+          'emissiveMap',
+          'alphaMap',
+          'aoMap'
+        ];
+
+        mapas.forEach((mapa) => {
+          if (material[mapa] && typeof material[mapa].dispose === 'function') {
+            material[mapa].dispose();
+          }
+        });
+
+        // Liberar material
+        material.dispose();
+      });
+    }
+
+    objetoFBX = null;
+  });
+
+  // 4. Eliminar referencias (opcional pero recomendado)
+  objetoFBX = null;
+}
+
 let explota = false;
 let balasImpactadas = 0;
+//let targetObjects = [TanqueGas,Zombie];
+
 function updateProjectiles() {
+  
     for (let i = 0; i < projectiles.length; i++) {
         const p = projectiles[i];
-        const targetObjects = [TanqueGas];
-        
         const deltaMove = p.userData.velocity.length();
         p.userData.traveledDistance += deltaMove;
   
@@ -367,28 +441,50 @@ function updateProjectiles() {
             continue;
         }
   
-  
+        
           //colision
+          
           raycaster.set(p.position.clone(), p.userData.velocity.clone().normalize());
+          //console.log("Objetivos válidos:", targetObjects);
+          //const validTarget = targetObjects.filter(obj => obj && obj.isObject3D);
+          
           const intersects = raycaster.intersectObjects(targetObjects, true);
+
           if (intersects.length > 0 && intersects[0].distance < p.userData.velocity.length()) {
               const hit = intersects[0];
               balasImpactadas =  + 1;
               console.log('💥 Proyectil impactó:', hit.object.name, balasImpactadas);
               if(balasImpactadas>0){
+
                 if(enemylife>0){
                   let damage = damageWeapon * balasImpactadas;
                   enemylife = enemylife - damage;
                   if(enemylife<0){
                     enemylife = 0;
                   }
+                  console.log(enemylife);
                 }
-                console.log(enemylife);
+                
               }
               explota = true;
               
               if(enemylife<=0){
-                scene.remove(TanqueGas);
+                
+                
+                //scene.remove(Zombie); //TanqueGas
+                if(EnemigosM<=0){
+                  
+                  //targetObjects = targetObjects.filter(obj => obj !== Zombie);  
+                  const index = targetObjects.indexOf(Zombie);
+                  if (index !== -1) {
+                    targetObjects.splice(index, 1);
+                  }
+                  eliminarZombie(Zombie, mixer2);
+                  EnemigosM += 1;
+                  console.log('Enemigos muertos: ', EnemigosM );
+                }
+                
+
               }
               
               
@@ -490,6 +586,7 @@ function Enemy(){
     Zombie.scale.set(0.2, 0.2, 0.2); // ajusta según sea necesario
     Zombie.position.set(80,0,80);
     scene.add(Zombie);
+    targetObjects.push(Zombie);
 
     //despues de cargar el personaje pordriamos atarle el arma desde aqui
     mixer2 = new THREE.AnimationMixer(Zombie);
@@ -624,7 +721,11 @@ ObjectosDisparar();
 CargaArma();
 Player();
 Enemy();
+let targetObjects = [];
 
+// Al cargar los modelos:
+//targetObjects.push(TanqueGas);
+//targetObjects.push(Zombie);
 
 
 //agregamos los eventos/controles
@@ -832,7 +933,7 @@ function animate() {
     
   }
 
-  if(Zombie){
+  if(Zombie && enemylife >0){
     
 
     if (isMoving) {
