@@ -97,8 +97,8 @@
   }
 
   function compartirResultado(puntos) {
-  const jugador = 'Fulano66'; // obtén el nombre real dinámicamente si puedes
-  const url = `https://tudominio.com/PIA_GCW/ZombResist/compartir.php?jugador=${encodeURIComponent(jugador)}&puntos=${puntos}`;
+  const jugador = 'Fulano66'; 
+  const url = `https://www.facebook.com/profile.php?id=61573590247535`;
 
   FB.ui({
     method: 'share',
