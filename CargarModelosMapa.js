@@ -3,7 +3,7 @@ import { GLTFLoader } from "/three.js-master/examples/jsm/loaders/GLTFLoader.js"
 import { OBJLoader } from "/three.js-master/examples/jsm/loaders/OBJLoader.js";
 import { FBXLoader } from "/three.js-master/examples/jsm/loaders/FBXLoader.js";
 
-export function CargarModelos(Mapa, scena){
+export function CargarModelos(Mapa, scena, listacolision){
     switch (Mapa) {
         case "ciudad":
             Ciudad(scena);
@@ -14,7 +14,7 @@ export function CargarModelos(Mapa, scena){
             break;
     
         case "fabrica":
-            Fabrica(scena);
+            Fabrica(scena, listacolision);
             break
     }
 }
@@ -664,7 +664,7 @@ function Militar(scene){
   });
 }
 
-function Fabrica(scene){
+function Fabrica(scene,listacolision){
   
   //./Level1/ModelosGLB/wooden_watchtower.glb escala 8 nivel de fabrica abandonada
   
@@ -741,6 +741,7 @@ function Fabrica(scene){
     }
     clonedModel.position.set(pos.x, pos.y, pos.z);
     scene.add(clonedModel);
+    listacolision.push(clonedModel);
     });
 
   }, undefined, (error) => {
@@ -816,6 +817,7 @@ function Fabrica(scene){
     }
     clonedModel.position.set(pos.x, pos.y, pos.z);
     scene.add(clonedModel);
+    listacolision.push(clonedModel);
     });
 
   }, undefined, (error) => {
@@ -833,6 +835,7 @@ function Fabrica(scene){
     water.scale.set(15,15,15);
     scene.add(water); 
     water.position.set(630,0,400);
+    listacolision.push(water);
     
   }, undefined, (error) => {
     console.error(error); 
@@ -844,6 +847,7 @@ function Fabrica(scene){
     water.scale.set(0.1,0.1,0.1);
     scene.add(water); 
     water.position.set(550,0,0);
+    listacolision.push(water);
     
   }, undefined, (error) => {
     console.error(error); 
@@ -882,6 +886,7 @@ function Fabrica(scene){
       }
       clonedModel.position.set(pos.x, pos.y, pos.z);
       scene.add(clonedModel);
+      listacolision.push(clonedModel);
       });
     
     
@@ -918,6 +923,7 @@ function Fabrica(scene){
       }
       clonedModel.position.set(pos.x, pos.y, pos.z);
       scene.add(clonedModel);
+      listacolision.push(clonedModel);
       });
     
     
@@ -931,6 +937,7 @@ function Fabrica(scene){
     model.scale.set(28,28,28);
     scene.add(model); 
     model.position.set(450,0,-800);
+    listacolision.push(model);
     
   }, undefined, (error) => {
     console.error(error); 
@@ -965,6 +972,7 @@ function Fabrica(scene){
       }
       clonedModel.position.set(pos.x, pos.y, pos.z);
       scene.add(clonedModel);
+      listacolision.push(clonedModel);
       });
     
     
@@ -1002,6 +1010,7 @@ function Fabrica(scene){
       }
       clonedModel.position.set(pos.x, pos.y, pos.z);
       scene.add(clonedModel);
+      listacolision.push(clonedModel);
       });
     
     
@@ -1038,6 +1047,7 @@ function Fabrica(scene){
       }
       clonedModel.position.set(pos.x, pos.y, pos.z);
       scene.add(clonedModel);
+      listacolision.push(clonedModel);
       });
     
     
@@ -1053,6 +1063,7 @@ function Fabrica(scene){
     scene.add(model); 
     model.position.set(0,0,800);
     model.rotation.y = Math.PI / 2;
+    listacolision.push(model);
   }, undefined, (error) => {
     console.error(error); 
   });
@@ -1065,6 +1076,7 @@ function Fabrica(scene){
     scene.add(model); 
     model.position.set(0,0,-800);
     model.rotation.y = Math.PI / 2;
+    listacolision.push(model);
   }, undefined, (error) => {
     console.error(error); 
   });
@@ -1076,46 +1088,12 @@ function Fabrica(scene){
     model.scale.set(18,18,18);
     scene.add(model); 
     model.position.set(-500,0,-150);
+    listacolision.push(model);
   }, undefined, (error) => {
     console.error(error); 
   });
 
   
-
-  const loaderMedic = new GLTFLoader();
-  loaderMedic.load('./personajes/Medic_pack.glb', (gltf) => {
-    const Medic = gltf.scene;
-    Medic.scale.set(1,1,1);
-    scene.add(Medic); 
-    Medic.position.set(0,15,0);
-  }, undefined, (error) => {
-    console.error(error); 
-  });
-  
-
-
-  //carga con obj
-  
-  // Cargar la textura
-  const textureLoader = new THREE.TextureLoader();
-  //caja militar
-  const textureMilitarBox = textureLoader.load('./Level1/Modelos/Militar-box/militarBox.png'); 
-  loaderCajaMilitar.load('./Level1/Modelos/Militar-box/militarBox.obj', function(militarbox) {
-    
-    militarbox.traverse(function(child) {
-        if (child.isMesh) {
-            child.material.map = textureMilitarBox;
-            child.material.needsUpdate = true;
-        }
-    });
-    militarbox.scale.set(5.5,5.5,5.5);
-    scene.add(militarbox);
-    militarbox.position.set(0, 0, 0);
-  });
-
-  //carga con fbx
-  
-    
   
 }
 

@@ -11,6 +11,16 @@ const Mapa = localStorage.getItem('Mapa');
 const Dificultad = localStorage.getItem('Dificultad');
 
 //variables globales
+const objetosConColision = [];
+let ExplosivosOBJ = [];
+let positionExplosivos = [
+  {x:-150,y:0,z:100},
+  {x:230,y:0,z:-600},
+  {x:510,y:0,z:600},
+  {x:-290,y:0,z:-600},
+  {x:-350,y:0,z:600}
+];
+
 let TanqueGas;
 let weapon;
 const firePoint = new THREE.Object3D();
@@ -46,16 +56,26 @@ const origin = new THREE.Vector3();
 const projectiles = [];
 
 //variables enemigos
-let Enemigos = [];
+let enemigos = []; // cantidad de enemigos que spawnwaran en el nivel
 let mixer2;
-let enemylife = 100;
+let previousPositionZombie = new THREE.Vector3();
+
 
 
 //varoables de jugabilidad idk ando re perdido
 let SoldierLife = 100;
-let TiempoPartida = 60;
+const vidaMaxima = 5;
+let vidaActual = 5;
+let tiempoRestante = 120; // tiempo en segundos (2 minutos)
+let intervaloID = null;
 let EnemigosM = 0;
-let EnemigosTotales = 3;
+let EnemigosTotales = 0;
+let cajasMilitares = [];
+let posicionesCajas = [];
+let medics = [];
+let posicionesMedics = [];
+let NCajasMuni = 0;
+let NMedicpack = 0;
 
 //controls camara y acciones
 let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
@@ -72,8 +92,251 @@ let rotation = { x: 0, y: 0 };
 
 //enemigos
 let Zombie;
+let ZombieDamage = 0;
 let Atack = false;
 //escena
+
+function setDificultad(){
+
+  switch (Dificultad) {
+    case "Facil":
+      tiempoRestante = 300; //segundos
+      EnemigosTotales = 2;
+      NCajasMuni = 5;
+      NMedicpack = 5;
+      ZombieDamage = 10;
+      posicionesCajas = [
+        {x:100,y:0,z:100},
+        {x:-180,y:0,z:-600},
+        {x:-460,y:0,z:600},
+        {x:240,y:0,z:-600},
+        {x:300,y:0,z:600}
+      ];
+
+      posicionesMedics = [
+        {x:150,y:0,z:100},
+        {x:-230,y:0,z:-600},
+        {x:-510,y:0,z:600},
+        {x:290,y:0,z:-600},
+        {x:350,y:0,z:600}
+      ];
+      break;
+
+    case "Normal":
+      tiempoRestante = 240; //segundos
+      EnemigosTotales = 3;
+      NCajasMuni = 4;
+      NMedicpack = 4;
+      ZombieDamage = 15;
+      posicionesCajas = [
+        {x:-180,y:0,z:-600},
+        {x:-460,y:0,z:600},
+        {x:240,y:0,z:-600},
+        {x:300,y:0,z:600}
+        
+      ];
+
+      posicionesMedics = [
+        {x:-230,y:0,z:-600},
+        {x:-510,y:0,z:600},
+        {x:290,y:0,z:-600},
+        {x:350,y:0,z:600}
+      ];
+      break;
+    
+    case "Dificil":
+      tiempoRestante = 240; //segundos
+      EnemigosTotales = 5;
+      NCajasMuni = 3;
+      NMedicpack = 3;
+      ZombieDamage = 20;
+      posicionesCajas = [
+        {x:-460,y:0,z:600},
+        {x:300,y:0,z:600},
+        {x:240,y:0,z:-600}
+      ];
+
+      posicionesMedics = [
+        {x:-510,y:0,z:600},
+        {x:290,y:0,z:-600},
+        {x:350,y:0,z:600}
+      ];
+      break;
+
+    case "Extremo":
+      tiempoRestante = 180; //segundos
+      EnemigosTotales = 6;
+      NCajasMuni = 2;
+      NMedicpack = 2;
+      ZombieDamage = 30;
+      posicionesCajas = [
+        {x:-460,y:0,z:600},
+        {x:300,y:0,z:600}
+      ];
+
+      posicionesMedics = [
+        {x:-510,y:0,z:600},
+        {x:350,y:0,z:600}
+      ];
+      break;
+  
+  }
+
+  
+
+}
+
+function cargarCajasMilitares(positions) {
+  const loaderCajaMilitar = new OBJLoader();
+  const textureLoader = new THREE.TextureLoader();
+  const textureMilitarBox = textureLoader.load('./Level1/Modelos/Militar-box/militarBox.png');
+
+  positions.forEach((pos) => {
+    loaderCajaMilitar.load('./Level1/Modelos/Militar-box/militarBox.obj', function (militarbox) {
+      
+      militarbox.traverse(function (child) {
+        if (child.isMesh) {
+          child.material.map = textureMilitarBox;
+          child.material.needsUpdate = true;
+        }
+      });
+
+      militarbox.scale.set(5.5, 5.5, 5.5);
+      militarbox.position.set(pos.x, pos.y, pos.z);
+
+      scene.add(militarbox);
+      cajasMilitares.push(militarbox);
+    });
+  });
+}
+
+function cargarMedics(positions) {
+  const loaderMedic = new GLTFLoader();
+
+  positions.forEach((pos) => {
+    loaderMedic.load('./personajes/Medic_pack.glb', (gltf) => {
+      const Medic = gltf.scene;
+      Medic.scale.set(1, 1, 1);
+      Medic.position.set(pos.x, pos.y, pos.z);
+
+      scene.add(Medic);
+      medics.push(Medic); // <- Guarda referencia si quieres manipularlos después
+    }, undefined, (error) => {
+      console.error('Error cargando modelo Medic:', error);
+    });
+  });
+}
+
+function eliminarCajaMilitar(jugadorPosition) {
+  for (let i = 0; i < cajasMilitares.length; i++) {
+    const caja = cajasMilitares[i];
+    if (!caja) continue;
+
+    const distancia = caja.position.distanceTo(jugadorPosition);
+    if (distancia < 25) {
+      // Eliminar del escenario
+      scene.remove(caja);
+
+      // Liberar memoria
+      caja.traverse((child) => {
+        if (child.isMesh) {
+          if (child.geometry) child.geometry.dispose();
+          if (Array.isArray(child.material)) {
+            child.material.forEach(mat => mat.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+
+      // Eliminar del arreglo
+      cajasMilitares.splice(i, 1);
+      i--; // ajustar índice tras eliminar
+      ammoMax += 8;
+      updateAmmoUI();
+      break;
+    }
+  }
+}
+
+function eliminarMedic(jugadorPosition) {
+  for (let i = 0; i < medics.length; i++) {
+    const medic = medics[i];
+    if (!medic) continue;
+
+    const distancia = medic.position.distanceTo(jugadorPosition);
+    if (distancia < 25) {
+      // Eliminar del escenario
+      scene.remove(medic);
+
+      // Liberar memoria
+      medic.traverse((child) => {
+        if (child.isMesh) {
+          if (child.geometry) child.geometry.dispose();
+          if (Array.isArray(child.material)) {
+            child.material.forEach(mat => {
+              if (mat.map) mat.map.dispose(); // por si tiene texturas
+              mat.dispose();
+            });
+          } else {
+            if (child.material.map) child.material.map.dispose();
+            child.material.dispose();
+          }
+        }
+      });
+
+      // Eliminar del arreglo
+      medics.splice(i, 1);
+      i--; // ajustar índice tras eliminar
+      if(SoldierLife<100){
+        SoldierLife += 20; // sumar un corazon completo
+        document.getElementById("userLife").textContent = `vida: ${SoldierLife}`;
+        vidaActual = Math.min(vidaActual + 1, vidaMaxima);
+        actualizarCorazones();
+      }
+      
+      break;
+    }
+  }
+}
+
+function iniciarCronometro() {
+  startTime = Date.now();
+}
+
+function iniciarTemporizador() {
+  actualizarDisplay(); // mostrar tiempo inicial
+  intervaloID = setInterval(() => {
+    tiempoRestante--;
+
+    if (tiempoRestante <= 0) {
+      clearInterval(intervaloID);
+      document.getElementById('timer').textContent = "Tiempo agotado";
+    } else {
+      actualizarDisplay();
+    }
+  }, 1000);
+}
+
+function actualizarDisplay() {
+  const minutos = String(Math.floor(tiempoRestante / 60)).padStart(2, '0');
+  const segundos = String(tiempoRestante % 60).padStart(2, '0');
+  document.getElementById('timer').textContent = ` ${minutos}:${segundos}`;
+}
+
+function actualizarCronometro() {
+  if (startTime === null) return;
+
+  const ahora = Date.now();
+  tiempoTotal = Math.floor((ahora - startTime) / 1000); // en segundos
+
+  const minutos = String(Math.floor(tiempoTotal / 60)).padStart(2, '0');
+  const segundos = String(tiempoTotal % 60).padStart(2, '0');
+
+  const texto = `Tiempo: ${minutos}:${segundos}`;
+  document.getElementById('timer').textContent = texto;
+}
+
 function CreateSkyBox(){
   const loaderSkyBox = new THREE.CubeTextureLoader();
   if(Mapa ==="fabrica"){
@@ -245,8 +508,9 @@ function attachWeaponToCharacter(weapon, character) {
     }
 }
 
-function ObjectosDisparar(){ //aqui van los objetos para que el disparo se detecte y FUNCIONE
-  const loaderBuilding3 = new GLTFLoader();
+function ObjectosDisparar(positions){ //aqui van los objetos para que el disparo se detecte y FUNCIONE
+  
+  /*const loaderBuilding3 = new GLTFLoader();
   loaderBuilding3.load('./Level3/ModelosGLB/rusty_gas_tank.glb', (gltf) => {
          TanqueGas = gltf.scene;
         TanqueGas.scale.set(22,22,22);
@@ -262,7 +526,26 @@ function ObjectosDisparar(){ //aqui van los objetos para que el disparo se detec
   const loaderEnemy = new GLTFLoader();
   loaderEnemy.load('./Level3/ModelosGLB/rusty_gas_tank.glb', (gltf) => {
       
+  });*/
+
+  
+  const loaderExplo = new GLTFLoader();
+  positions.forEach((pos) => {
+    loaderExplo.load('./Level3/ModelosGLB/rusty_gas_tank.glb', (gltf) => {
+      const Explo = gltf.scene;
+      Explo.scale.set(22, 22, 22);
+      Explo.position.set(pos.x, pos.y, pos.z);
+
+      scene.add(Explo);
+      ExplosivosOBJ.push(Explo); // <- Guarda referencia si quieres manipularlos después
+      targetObjects.push(Explo);
+    }, undefined, (error) => {
+      console.error('Error cargando modelo Medic:', error);
+    });
   });
+
+
+
   
 }
 
@@ -313,8 +596,35 @@ function reloadAmmo(typeWeapon) {
 }
 
 function updateAmmoUI() {
-  document.getElementById("ammoDisplay").textContent = `Balas: ${ammo}`;
-  document.getElementById("ammoDisplay2").textContent = `/ ${ammoMax}`;
+  document.getElementById("ammoDisplay").textContent = `${ammo}`;
+  document.getElementById("ammoDisplay2").textContent = ` /${ammoMax}`;
+}
+
+function UpdateInterfaz(){
+  //document.getElementById("userLife").textContent = `vida: ${SoldierLife}`;
+  document.getElementById("EnemyM").textContent = `${EnemigosM}`;
+  document.getElementById("EnemyTotal").textContent = `${EnemigosTotales}`;
+}
+
+function actualizarCorazones() {
+  const contenedor = document.getElementById('vidaContainer');
+  contenedor.innerHTML = ''; // Vaciar corazones actuales
+
+  for (let i = 0; i < vidaActual; i++) {
+    const img = document.createElement('img');
+    img.src = './vida.png'; // Ruta de tu PNG de corazón
+    img.classList.add('corazon');
+    contenedor.appendChild(img);
+  }
+
+  //opcion con corazones vacios y llenos
+  /*for (let i = 0; i < vidaMaxima; i++) {
+    const img = document.createElement('img');
+    img.src = i < vidaActual ? './ui/corazon_lleno.png' : './ui/corazon_vacio.png';
+    img.classList.add('corazon');
+    contenedor.appendChild(img);
+  }*/
+
 }
 
 function shootShotgun(position, direction) {
@@ -364,7 +674,7 @@ function shoot(position, direction, currentTime, mode) {
   } //else if(ammo <= 0){sonido de vacio o alerta de sin balas}
 }
 
-function eliminarZombie(objetoFBX, mixer = null) {
+function eliminarZombie(objetoFBX, mixer = null) { // funciona para cualquier objeto que sea fbx, en teoria
   
   // 1. Detener animaciones si hay mixer
   if (mixer) {
@@ -413,11 +723,50 @@ function eliminarZombie(objetoFBX, mixer = null) {
       });
     }
 
-    objetoFBX = null;
+    //objetoFBX = null;
   });
 
   // 4. Eliminar referencias (opcional pero recomendado)
-  objetoFBX = null;
+  //objetoFBX = null;
+  if (objetoFBX.parent) objetoFBX.parent.remove(objetoFBX);
+}
+
+function crearExplosionVisual(pos) {
+  const geometria = new THREE.SphereGeometry(50, 32, 32);
+  const material = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 });
+  const explosion = new THREE.Mesh(geometria, material);
+  explosion.position.copy(pos);
+  scene.add(explosion);
+
+  // Desaparece lentamente
+  setTimeout(() => scene.remove(explosion), 300);
+}
+
+function crearExplosion(posicion) {
+  const radioDeDano = 50; // Ajusta el radio
+  const dano = 50;
+
+  crearExplosionVisual(posicion); // efecto opcional
+
+  enemigos.forEach(enemigo => {
+    const distancia = enemigo.model.position.distanceTo(posicion);
+    if (distancia <= radioDeDano) {
+      enemigo.vida -= dano;
+      console.log(`¡Enemigo dañado! Vida restante: ${enemigo.vida}`);
+
+      if (enemigo.vida <= 0) {
+        eliminarZombie(enemigo.model, enemigo.mixer); // o lo que uses para eliminarlo
+        const idx = targetObjects.indexOf(enemigo.model);
+        if (idx !== -1) targetObjects.splice(idx, 1);
+
+        enemigos = enemigos.filter(e => e !== enemigo);
+
+        EnemigosM += 1;
+        EnemigosTotales -= 1;
+                
+      }
+    }
+  });
 }
 
 let explota = false;
@@ -445,47 +794,71 @@ function updateProjectiles() {
           //colision
           
           raycaster.set(p.position.clone(), p.userData.velocity.clone().normalize());
-          //console.log("Objetivos válidos:", targetObjects);
+          console.log("Objetivos válidos:", targetObjects);
           //const validTarget = targetObjects.filter(obj => obj && obj.isObject3D);
           
           const intersects = raycaster.intersectObjects(targetObjects, true);
 
           if (intersects.length > 0 && intersects[0].distance < p.userData.velocity.length()) {
-              const hit = intersects[0];
-              balasImpactadas =  + 1;
-              console.log('💥 Proyectil impactó:', hit.object.name, balasImpactadas);
-              if(balasImpactadas>0){
+              //const hit = intersects[0];
+              const hitObject = intersects[0].object;
+              const enemigotarget = enemigos.find(e => e.model === hitObject || e.model.children.includes(hitObject));
 
-                if(enemylife>0){
-                  let damage = damageWeapon * balasImpactadas;
-                  enemylife = enemylife - damage;
-                  if(enemylife<0){
-                    enemylife = 0;
-                  }
-                  console.log(enemylife);
+              const exploTarget = ExplosivosOBJ.find(explo => {
+              let fueImpactado = false;
+              explo.traverse(child => {
+                if (child === hitObject) {
+                  fueImpactado = true;
                 }
-                
+                });
+                  return fueImpactado;
+              });
+              
+              
+              balasImpactadas =  + 1;
+              console.log('💥 Proyectil impactó:', exploTarget);
+              
+              if(balasImpactadas>0){
+                if( enemigotarget && enemigotarget.vida > 0){
+                  let damage = damageWeapon * balasImpactadas;
+                  enemigotarget.vida -= damage;
+                }
+
+                if(hitObject){
+                  scene.remove(hitObject);
+                }
               }
               explota = true;
               
-              if(enemylife<=0){
-                
-                
-                //scene.remove(Zombie); //TanqueGas
-                if(EnemigosM<=0){
-                  
-                  //targetObjects = targetObjects.filter(obj => obj !== Zombie);  
-                  const index = targetObjects.indexOf(Zombie);
-                  if (index !== -1) {
-                    targetObjects.splice(index, 1);
-                  }
-                  eliminarZombie(Zombie, mixer2);
-                  EnemigosM += 1;
-                  console.log('Enemigos muertos: ', EnemigosM );
-                }
-                
+              if(exploTarget){
+                const explosionPosition = exploTarget.position.clone();
+                crearExplosion(explosionPosition);
+                scene.remove(exploTarget);
+                const idx = targetObjects.indexOf(exploTarget);
+                if (idx !== -1) targetObjects.splice(idx, 1);
+                ExplosivosOBJ = ExplosivosOBJ.filter(e => e !== exploTarget);
 
               }
+              
+              if (enemigotarget && enemigotarget.vida <=0) {
+                //enemigotarget.alive = false;
+                
+                eliminarZombie(enemigotarget.model, enemigotarget.mixer);
+            
+                const idx = targetObjects.indexOf(enemigotarget.model);
+                if (idx !== -1) targetObjects.splice(idx, 1);
+
+                enemigos = enemigos.filter(e => e !== enemigotarget);
+
+                EnemigosM += 1;
+                EnemigosTotales -= 1;
+                
+
+                // Opcional: animación de muerte antes de eliminar
+                
+              }
+            
+            
               
               
   
@@ -574,12 +947,52 @@ function Player(){
       const action = mixer.clipAction(anim);
       animationsMap.set('Aim', action);
     });
+
+    fbxLoaderAnim.load('./personajes/animaciones/Dying.fbx', (fbx) => {
+      const anim = fbx.animations[0];
+      const action = mixer.clipAction(anim);
+      animationsMap.set('Death', action);
+    });
   
   });
 
 }
 
-function Enemy(){
+function Enemy(posX, posZ) {
+  const loaderPersonaje = new FBXLoader();
+  loaderPersonaje.load('./enemy/Zombie_cop.fbx', (fbx) => {
+    const zombie = fbx;
+    zombie.scale.set(0.2, 0.2, 0.2);
+    zombie.position.set(posX, 0, posZ);
+    scene.add(zombie);
+    targetObjects.push(zombie);
+
+    const mixer = new THREE.AnimationMixer(zombie);
+    const animationsMap = new Map();
+
+    // Cargar animaciones
+    const anims = [
+      { name: 'Zombie_Idle', path: './enemy/animaciones/Zombie_Idle.fbx', speed: 1.0 },
+      { name: 'Zombie_Walking', path: './enemy/animaciones/Zombie_Running.fbx', speed: 1.0 },
+      { name: 'Zombie_Scream', path: './enemy/animaciones/Zombie_Scream.fbx', speed: 1.0 },
+      { name: 'Zombie_Attack', path: './enemy/animaciones/Zombie_Attack.fbx', speed: 1.5 },
+      { name: 'Zombie_Death', path: './enemy/animaciones/Zombie_Death.fbx', speed: 1.0 }
+    ];
+
+    anims.forEach(anim => {
+      fbxLoaderAnim2.load(anim.path, (fbx) => {
+        const action = mixer.clipAction(fbx.animations[0]);
+        action.setEffectiveTimeScale(anim.speed);
+        animationsMap.set(anim.name, action);
+      });
+    });
+
+    // Guardar este enemigo en el arreglo global
+    enemigos.push({ model: zombie, mixer, animationsMap, currentAction: null, vida: 100, ultimoAtaque: 0 });
+  });
+}
+
+function EnemyOLD(){
   const loaderPersonaje = new FBXLoader();
   loaderPersonaje.load('./enemy/Zombie_cop.fbx', (fbx) => {
     Zombie = fbx;
@@ -633,23 +1046,35 @@ function Enemy(){
 
 }
 
-function moveEnemyTowardPlayer(enemy, playerPosition, speed, delta) {
-  const direction = new THREE.Vector3().subVectors(playerPosition, enemy.position);
-  const distance = direction.length();
+function moveEnemyTowardPlayer(zombie, playerPos, speed, delta, selfIndex) {
+  const directionToPlayer = new THREE.Vector3().subVectors(playerPos, zombie.position).normalize();
 
-  if (distance > 30) { // evitar que se pegue exactamente
-    Atack = false;
-    direction.normalize();
-    const velocity = direction.multiplyScalar(speed * delta);
-    enemy.position.add(velocity);
+  // Separación de otros enemigos
+  const separation = new THREE.Vector3();
+  enemigos.forEach((otro, i) => {
+    if (i === selfIndex || otro.vida <=0) return;
 
-    // Opcional: girar el enemigo para que mire al jugador
-    enemy.lookAt(playerPosition);
-  }
+    const distancia = zombie.position.distanceTo(otro.model.position); // distancia entre zombies
+    const minDistance = 142; // distancia mínima entre zombies
 
-  if(distance<30){
-    Atack = true;
-  }
+    if (distancia < minDistance && distancia > 0) {
+      const repulsion = new THREE.Vector3().subVectors(zombie.position, otro.model.position).normalize();
+      repulsion.y = 0; // 👉 Eliminar influencia vertical
+      repulsion.multiplyScalar((minDistance - distancia) / minDistance);
+      separation.add(repulsion);
+    }
+    
+
+    
+  });
+
+  // Combinar direcciones
+ 
+  const finalDir = directionToPlayer.clone().add(separation).normalize();
+
+  // Mover zombie
+  finalDir.y = 0;
+  zombie.position.add(finalDir.multiplyScalar(speed * delta));
 }
 
 function reproducirAnimacionRecoger() {
@@ -678,11 +1103,30 @@ function playAnimation(name) {
       currentAction.fadeOut(0.2); // suaviza la transición
     }
   
-    newAction.reset().fadeIn(0.2).play();
+    if (name === 'Death') {
+      newAction.setLoop(THREE.LoopOnce);
+      newAction.clampWhenFinished = true;
+      newAction.reset();
+      newAction.play();
+    } else {
+      newAction.reset().fadeIn(0.2).play();
+    }
     currentAction = newAction;
 }
 
-function playAnimation2(name) {
+function playEnemyAnimation(enemigo, animName) {
+  const newAction = enemigo.animationsMap.get(animName);
+  if (!newAction || newAction === enemigo.currentAction) return;
+
+  if (enemigo.currentAction) {
+    enemigo.currentAction.fadeOut(0.2);
+  }
+
+  newAction.reset().fadeIn(0.2).play();
+  enemigo.currentAction = newAction;
+}
+
+function playAnimation2oldenemy(name) {
   const newAction = animationsMap2.get(name);
   if (!newAction || newAction === currentAction2) return;
 
@@ -716,12 +1160,32 @@ scene.add(directionalLight);
 
 CreateSkyBox();
 CreateFloor();
-CargarModelos(Mapa,scene);
-ObjectosDisparar();
+CargarModelos(Mapa,scene,objetosConColision);
+ObjectosDisparar(positionExplosivos);
 CargaArma();
 Player();
-Enemy();
+setDificultad();
+cargarCajasMilitares(posicionesCajas);
+cargarMedics(posicionesMedics);
+for (let i = 0; i < EnemigosTotales; i++) {
+  let x, z, distancia;
+
+  // Repetir hasta que la distancia sea mayor a 100
+  do {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = Math.random() * 300 + 100; // Generar de 100 a 400, por ejemplo
+
+    x = Math.cos(angle) * radius;
+    z = Math.sin(angle) * radius;
+
+    distancia = Math.sqrt(x * x + z * z);
+  } while (distancia < 100); // Asegurar que no spawneen dentro del radio de 100
+
+  Enemy(x, z);
+}
 let targetObjects = [];
+
+actualizarCorazones();
 
 // Al cargar los modelos:
 //targetObjects.push(TanqueGas);
@@ -756,6 +1220,17 @@ window.addEventListener('keydown', (event) => {
           attachWeaponToCharacter(weapon, soldier);
           
         }      
+        if(eliminarCajaMilitar(soldier.position)){
+          //lo que pongas aqui no va a funcionar almenos que hagamos que la funcion regrese algo como un true por ejemplo
+          
+
+        };
+
+        if(eliminarMedic(soldier.position)){
+          //aumentar vida del jugador
+          
+        };
+
         break;
       case 'KeyC':
   
@@ -848,20 +1323,26 @@ document.addEventListener('mousemove', (event) => {
   camera.quaternion.copy(quat);
 });
 
+// inicamos cronometro( poner una validacion para que se inicie una vez esten los 2 jugadores)
+//iniciarCronometro();
+iniciarTemporizador();
 
 //loop de animacion
 function animate() {
-
+  let previousPosition = new THREE.Vector3();
+  let colisionDetectada = false;
+  let colisionDetectadaZ = false;
   const delta = clock.getDelta();
   if (mixer) mixer.update(delta);
-  if (mixer2) mixer2.update(delta);
+  //if (mixer2) mixer2.update(delta);
 
   const isMoving = moveForward || moveBackward || moveLeft || moveRight;
 
   
+  
 
-  if (isMoving) {
-
+  if (isMoving && soldier) {
+    previousPosition = soldier.position.clone();
     if(isRunning){
       playAnimation('Run_Rifle');
       
@@ -874,9 +1355,21 @@ function animate() {
       playAnimation('Picking_Up');
       PickUpAnimation = false;
     }else{
-      playAnimation('Rifle_Idle');
+      if(SoldierLife === 0){
+        playAnimation('Death');
+      }else{
+        playAnimation('Rifle_Idle');
+      }
+      
     }
+    if(soldier){
+      previousPosition = soldier.position.clone();
+    }
+    
   }
+
+  
+  
 
   const direction = new THREE.Vector3();  // Esta es la dirección de movimiento del soldado
   camera.getWorldDirection(direction);
@@ -886,11 +1379,35 @@ function animate() {
   const rightDirection = new THREE.Vector3();
   rightDirection.crossVectors(direction, camera.up);  // Dirección lateral
   rightDirection.normalize();
+  
+  
+
+
   if (moveForward) soldier.position.addScaledVector(direction, currentSpeed);
   if (moveBackward) soldier.position.addScaledVector(direction, -currentSpeed);
   if (moveLeft) soldier.position.addScaledVector(rightDirection, -currentSpeed);
   if (moveRight) soldier.position.addScaledVector(rightDirection, currentSpeed);
 
+  if(soldier && moveForward || moveBackward || moveLeft || moveRight){
+    const cajaJugador = new THREE.Box3().setFromObject(soldier);
+      
+    for (const obj of objetosConColision) {
+      const cajaObjeto = new THREE.Box3().setFromObject(obj);
+      if (cajaJugador.intersectsBox(cajaObjeto)) {
+        colisionDetectada = true;
+        break;
+      }
+    }
+
+    if (colisionDetectada) {
+      // Revertir el movimiento o bloquearlo
+      soldier.position.copy(previousPosition);
+      console.log('colision');
+    }
+    
+  }
+
+  
   
   // calcular vista
   const lookDir = new THREE.Vector3();
@@ -933,37 +1450,88 @@ function animate() {
     
   }
 
-  if(Zombie && enemylife >0){
+  const tiempoActual = performance.now() / 1000;
+  if(enemigos && soldier){
     
+    enemigos.forEach((enemigo,i) => {
 
-    if (isMoving) {
-      playAnimation2('Zombie_Walking');
-      if(soldier){
-        moveEnemyTowardPlayer(Zombie, soldier.position, 120, delta); // 2 = velocidad
-      }
-      if(Atack){
-        playAnimation2('Zombie_Attack');  
-        
-      }
-      
-      
-      
-    }else{
-      if(Atack){
-        playAnimation2('Zombie_Attack');  
+      if (enemigo.vida <=0)return;
+
+    
+      const zombie = enemigo.model;
+    
+      // Calcular distancia al jugador
+      const distanciaAtack = zombie.position.distanceTo(soldier.position);
+      if(distanciaAtack < 22){
+        Atack = true;
       }else{
-        playAnimation2('Zombie_Idle');  
+        Atack = false;
       }
       
-    }
 
-    
+      
+
+      if (isMoving) {
+        
+        const target = soldier.position.clone();
+        target.y = zombie.position.y;
+        zombie.lookAt(target);
+        playEnemyAnimation(enemigo, 'Zombie_Walking');
+        previousPositionZombie = zombie.position.clone();
+        moveEnemyTowardPlayer(zombie, soldier.position, 120, delta, i);
+        const cajaZombie = new THREE.Box3().setFromObject(zombie);
+        for (const obj of objetosConColision) {
+          const cajaObjeto = new THREE.Box3().setFromObject(obj);
+          if (cajaZombie.intersectsBox(cajaObjeto)) {
+            colisionDetectadaZ = true;
+            break;
+          }
+        }
+
+        if (colisionDetectadaZ) {
+          // Retrocede un poco en la dirección contraria
+          
+          zombie.position.copy(previousPositionZombie); // muy muy basico solo impide que no atraviese el objeto
+          console.log('Zombie colision');
+        }
+
+        if(Atack){
+          playEnemyAnimation(enemigo, 'Zombie_Attack');
+        }
+      }else{
+        if(Atack && SoldierLife>0){
+
+          if (tiempoActual - enemigo.ultimoAtaque > 3) { // ajustar segundos entre ataque
+            zombie.lookAt(soldier.position);
+            playEnemyAnimation(enemigo, 'Zombie_Attack');
+
+            if(SoldierLife >0){
+              SoldierLife -= 20;
+              vidaActual = Math.max(vidaActual - 1, 0);
+              actualizarCorazones();
+            }else if(SoldierLife<=0){
+              SoldierLife = 0;
+            }
+            
+            enemigo.ultimoAtaque = tiempoActual;
+          }
+        }else{
+          zombie.lookAt(soldier.position);
+          playEnemyAnimation(enemigo, 'Zombie_Idle');  
+        }
+
+      }
+      // Avanzar animación
+      enemigo.mixer.update(delta);
+    });
 
   }
 
 
   
   updateProjectiles();
+  UpdateInterfaz();
+  //actualizarCronometro();
 
   if(FirstPerson){
   
