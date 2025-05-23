@@ -109,6 +109,50 @@
       <img id="LossImage" src="./game-over.png" style="display: none;">
     </div>
     
+    <!-- tabla de puntuaciones-->
+    <div id="scoreBoard" style="
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px 30px;
+      border-radius: 10px;
+      color: white;
+      font-family: sans-serif;
+      z-index: 9999;
+      display: none;
+      text-align: center;
+    ">
+      <h2 style="margin-bottom: 15px;">Puntuación Final</h2>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+          <tr>
+            <th style="border-bottom: 1px solid #ccc; padding: 8px;">Puntaje</th>
+            <th style="border-bottom: 1px solid #ccc; padding: 8px;">Enemigos Eliminados</th>
+            <th style="border-bottom: 1px solid #ccc; padding: 8px;">Tiempo Restante</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="puntajeFinal" style="text-align: center; padding: 8px;">0</td>
+            <td id="enemigosEliminados" style="text-align: center; padding: 8px;">0</td>
+            <td id="tiempoFinal" style="text-align: center; padding: 8px;">00:00</td>
+          </tr>
+        </tbody>
+      </table>
+      <button onclick="window.location.href='lobby.html'" style="
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #1e90ff;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        cursor: pointer;
+      ">
+        Volver al Lobby
+      </button>
+    </div>
 
     <!-- Then Socket.IO -->
     <script src="/socket.io/socket.io.js"></script>
