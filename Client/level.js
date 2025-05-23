@@ -4,6 +4,8 @@ import { OBJLoader } from "/three.js-master/examples/jsm/loaders/OBJLoader.js";
 import { FBXLoader } from "/three.js-master/examples/jsm/loaders/FBXLoader.js";
 import { CargarModelos } from './CargarModelosMapa.js';
 import { explosion } from './shaders.js';
+// import io from '/socket.io/socket.io.js'; // asegúrate que esté accesible
+const socket = io();
 
 const Personaje = localStorage.getItem('Personaje');
 const Arma = localStorage.getItem('Arma');
@@ -14,7 +16,11 @@ const username = localStorage.getItem("username");
 const userId = localStorage.getItem("userId");
 
 console.log("Logged in as:", username, "with ID:", userId);
+//Arreglo para guardar los jugadores
+const otherPlayers = {};
+const enemigosSynced = {}; // clave: id, valor: { model, mixer, etc }
 
+const players = {};
 
 //variables globales
 const objetosConColision = [];
@@ -104,6 +110,128 @@ let Zombie;
 let ZombieDamage = 0;
 let Atack = false;
 //escena
+
+//Funciones de socket io
+socket.on('playersUpdate', (players) => {
+  for (const id in players) {
+    if (id === socket.id) continue;
+
+    if (!otherPlayers[id]) {
+      // Crear personaje (cubo por ahora, luego puedes usar un FBX)
+      const geo = new THREE.BoxGeometry(5, 5, 5);
+      const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const mesh = new THREE.Mesh(geo, mat);
+      scene.add(mesh);
+      otherPlayers[id] = mesh;
+    }
+
+    const p = players[id];
+    const mesh = otherPlayers[id];
+    mesh.position.set(p.x, p.y, p.z);
+    mesh.quaternion.set(p.qx, p.qy, p.qz, p.qw);
+  }
+});
+
+// Quitar jugador si se desconecta
+socket.on('playerDisconnected', (id) => {
+  if (otherPlayers[id]) {
+    scene.remove(otherPlayers[id]);
+    delete otherPlayers[id];
+  }
+});
+
+socket.on('playerShoot', ({ origin, direction, weapon }) => {
+  const originVec = new THREE.Vector3().fromArray(origin);
+  const dirVec = new THREE.Vector3().fromArray(direction);
+  shoot(originVec, dirVec, performance.now(), weapon);
+});
+
+socket.on('gameOver', ({ win }) => {
+  FinJuego = true;
+  hudMain(true);
+  if (win) {
+    document.getElementById("Winner").style.display = "block";
+    document.getElementById("WinImage").style.display = "block";
+  } else {
+    document.getElementById("Losser").style.display = "block";
+    document.getElementById("LossImage").style.display = "block";
+  }
+});
+
+socket.on('enemySpawn', (data) => {
+  for (const id in data) {
+    const enemyData = data[id];
+    // if (!enemigosSynced[id]) {
+    //   Enemy(enemyData.x, enemyData.z, id); // modificamos Enemy() abajo
+    // }
+        if (!enemigos[id]) {
+      Enemy(enemyData.x, enemyData.z, id); // modificamos Enemy() abajo
+    }
+  }
+});
+
+// socket.on('enemyState', (data) => {
+//   for (const id in data) {
+//     const enemyData = data[id];
+//     const e = enemigosSynced[id];
+//     if (e) {
+//       e.model.position.set(enemyData.x, enemyData.y, enemyData.z);
+//       e.model.rotation.y = enemyData.rotationY;
+//       e.vida = enemyData.health;
+
+//       // Visualmente muerto
+//       if (e.vida <= 0) {
+//         eliminarZombie(e.model, e.mixer);
+//         delete enemigosSynced[id];
+//       }
+//     }
+//   }
+// });
+
+socket.on('enemyState', (data) => {
+  for (const id in data) {
+    const enemyData = data[id];
+    const e = enemigos[id];
+    if (e) {
+      e.model.position.set(enemyData.x, enemyData.y, enemyData.z);
+      e.model.rotation.y = enemyData.rotationY;
+      e.vida = enemyData.health;
+
+      // Visualmente muerto
+      if (e.vida <= 0) {
+        eliminarZombie(e.model, e.mixer);
+        delete enemigos[id];
+      }
+    }
+  }
+});
+
+// socket.on('enemyState', (data) => {
+//   for (const id in data) {
+//     const serverEnemy = data[id];
+//     const e = enemigosSynced[id];
+//     if (!e) continue;
+
+//     e.model.position.set(serverEnemy.x, serverEnemy.y, serverEnemy.z);
+//     e.model.rotation.y = serverEnemy.rotationY;
+//     e.vida = serverEnemy.health;
+
+//     if (e.vida <= 0) {
+//       eliminarZombie(e.model, e.mixer);
+//       delete enemigosSynced[id];
+//     }
+//   }
+
+//   // Eliminar enemigos que ya no existen
+//   for (const id in enemigosSynced) {
+//     if (!data[id]) {
+//       eliminarZombie(enemigosSynced[id].model, enemigosSynced[id].mixer);
+//       delete enemigosSynced[id];
+//     }
+//   }
+// });
+
+
 
 function setDificultad(){
 
@@ -966,6 +1094,19 @@ function updateProjectiles() {
                   let damage = damageWeapon * balasImpactadas;
                   enemigotarget.vida -= damage;
                 }
+                // if (enemigotarget && enemigotarget.vida > 0) {
+                //   const id = Object.keys(enemigosSynced).find(key => enemigosSynced[key].model === enemigotarget.model);
+                //   if (id) {
+                //     socket.emit('damageEnemy', { id, damage: damageWeapon });
+                //   }
+                // }
+                if (enemigotarget && enemigotarget.vida > 0) {
+                  const id = Object.keys(enemigos).find(key => enemigos[key].model === enemigotarget.model);
+                  if (id) {
+                    socket.emit('damageEnemy', { id, damage: damageWeapon });
+                  }
+                }
+
 
                 if(hitObject){
                   scene.remove(hitObject);
@@ -1001,6 +1142,7 @@ function updateProjectiles() {
                   FinJuego = true;
                   hudMain(FinJuego);
                   Winner = true;
+                  socket.emit('gameOver', { win: true }); // o false
                   document.getElementById("Winner").style.display = "block";
                   document.getElementById("WinImage").style.display = "block";
                 }
@@ -1108,8 +1250,42 @@ function Player(){
   });
 
 }
+//Funcion de enemigos sin replica
+// function Enemy(posX, posZ) {
+//   const loaderPersonaje = new FBXLoader();
+//   loaderPersonaje.load('./enemy/Zombie_cop.fbx', (fbx) => {
+//     const zombie = fbx;
+//     zombie.scale.set(0.2, 0.2, 0.2);
+//     zombie.position.set(posX, 0, posZ);
+//     scene.add(zombie);
+//     targetObjects.push(zombie);
 
-function Enemy(posX, posZ) {
+//     const mixer = new THREE.AnimationMixer(zombie);
+//     const animationsMap = new Map();
+
+//     // Cargar animaciones
+//     const anims = [
+//       { name: 'Zombie_Idle', path: './enemy/animaciones/Zombie_Idle.fbx', speed: 1.0 },
+//       { name: 'Zombie_Walking', path: './enemy/animaciones/Zombie_Running.fbx', speed: 1.0 },
+//       { name: 'Zombie_Scream', path: './enemy/animaciones/Zombie_Scream.fbx', speed: 1.0 },
+//       { name: 'Zombie_Attack', path: './enemy/animaciones/Zombie_Attack.fbx', speed: 1.5 },
+//       { name: 'Zombie_Death', path: './enemy/animaciones/Zombie_Death.fbx', speed: 1.0 }
+//     ];
+
+//     anims.forEach(anim => {
+//       fbxLoaderAnim2.load(anim.path, (fbx) => {
+//         const action = mixer.clipAction(fbx.animations[0]);
+//         action.setEffectiveTimeScale(anim.speed);
+//         animationsMap.set(anim.name, action);
+//       });
+//     });
+
+//     // Guardar este enemigo en el arreglo global
+//     enemigos.push({ model: zombie, mixer, animationsMap, currentAction: null, vida: 100, ultimoAtaque: 0 });
+//   });
+// }
+
+function Enemy(posX, posZ, id = null) {
   const loaderPersonaje = new FBXLoader();
   loaderPersonaje.load('./enemy/Zombie_cop.fbx', (fbx) => {
     const zombie = fbx;
@@ -1138,10 +1314,11 @@ function Enemy(posX, posZ) {
       });
     });
 
-    // Guardar este enemigo en el arreglo global
+    // enemigosSynced[id] = { model: zombie, mixer, animationsMap, currentAction: null, vida: 100 };
     enemigos.push({ model: zombie, mixer, animationsMap, currentAction: null, vida: 100, ultimoAtaque: 0 });
   });
 }
+
 
 function EnemyOLD(){
   const loaderPersonaje = new FBXLoader();
@@ -1226,6 +1403,8 @@ function moveEnemyTowardPlayer(zombie, playerPos, speed, delta, selfIndex) {
   // Mover zombie
   finalDir.y = 0;
   zombie.position.add(finalDir.multiplyScalar(speed * delta));
+
+
 }
 
 function reproducirAnimacionRecoger() {
@@ -1318,22 +1497,22 @@ Player();
 setDificultad();
 cargarCajasMilitares(posicionesCajas);
 cargarMedics(posicionesMedics);
-for (let i = 0; i < EnemigosTotales; i++) {
-  let x, z, distancia;
+// for (let i = 0; i < EnemigosTotales; i++) {
+//   let x, z, distancia;
 
-  // Repetir hasta que la distancia sea mayor a 100
-  do {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = Math.random() * 300 + 100; // Generar de 100 a 400, por ejemplo
+//   // Repetir hasta que la distancia sea mayor a 100
+//   do {
+//     const angle = Math.random() * Math.PI * 2;
+//     const radius = Math.random() * 300 + 100; // Generar de 100 a 400, por ejemplo
 
-    x = Math.cos(angle) * radius;
-    z = Math.sin(angle) * radius;
+//     x = Math.cos(angle) * radius;
+//     z = Math.sin(angle) * radius;
 
-    distancia = Math.sqrt(x * x + z * z);
-  } while (distancia < 100); // Asegurar que no spawneen dentro del radio de 100
+//     distancia = Math.sqrt(x * x + z * z);
+//   } while (distancia < 100); // Asegurar que no spawneen dentro del radio de 100
 
-  Enemy(x, z);
-}
+//   Enemy(x, z);
+// }
 let targetObjects = [];
 hudMain(FinJuego);
 actualizarCorazones();
@@ -1597,7 +1776,13 @@ function animate() {
       
       shoot(origin, direction, currentTime, currentWeapon); // shotgun or single
       
-      
+      socket.emit('playerShoot', {
+  origin: origin.toArray(),
+  direction: direction.toArray(),
+  weapon: currentWeapon
+});
+
+
       }else{
         balasImpactadas = 0;
       }
@@ -1635,7 +1820,7 @@ function animate() {
         zombie.lookAt(target);
         playEnemyAnimation(enemigo, 'Zombie_Walking');
         previousPositionZombie = zombie.position.clone();
-        moveEnemyTowardPlayer(zombie, soldier.position, 120, delta, i);
+        // moveEnemyTowardPlayer(zombie, soldier.position, 120, delta, i);
         const cajaZombie = new THREE.Box3().setFromObject(zombie);
         for (const obj of objetosConColision) {
           const cajaObjeto = new THREE.Box3().setFromObject(obj);
@@ -1673,6 +1858,7 @@ function animate() {
               clearInterval(intervaloID);
               FinJuego = true;
               hudMain(FinJuego);
+              socket.emit('gameOver', { win: false }); // o false
               document.getElementById("Losser").style.display = "block";
               document.getElementById("LossImage").style.display = "block";
               
@@ -1692,6 +1878,19 @@ function animate() {
 
   }
 
+  //Emit de la posicion del jugador
+if (soldier) {
+  socket.emit('updatePosition', {
+    id: socket.id,
+    x: soldier.position.x,
+    y: soldier.position.y,
+    z: soldier.position.z,
+    qx: soldier.quaternion.x,
+    qy: soldier.quaternion.y,
+    qz: soldier.quaternion.z,
+    qw: soldier.quaternion.w
+  });
+}
 
   
   updateProjectiles();
