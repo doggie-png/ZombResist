@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/zombresist.css">
+    <title>Zombresist</title>
+</head>
+<body>
+  <style>
+    body {
+    background-image: url('Imagenes/Fondos/pared\ negra.jpg');
+    font-family: "Oswald", sans-serif;
+    }
+  </style>
+  <div class="contenedor">
+    <div class="header">
+        <img src="Imagenes/nombre-removebg-preview.png" alt="Logo">
+        <button onclick="window.location.href='login.html'" class="btn">Iniciar Sesión</button>
+    </div>
+    <h1 class="noticias">Últimas noticias</h1>
+    <div class="info">
+      <div id="postsContainer" class="row">
+      </div>
+      <script>
+        window.fbAsyncInit = function () {
+          FB.init({
+            appId: '622061554194730',
+            xfbml: false,
+            version: 'v17.0'
+          });
+      
+          cargarPosts();
+        };
+        function cargarPosts() {
+      FB.api('/618787511306843/posts?fields=message,created_time,full_picture,permalink_url', 'GET', {
+        access_token: "EAAI1wv33WSoBO6K82gi5CUMTA5u3dRD2qpolWy0ZCRN6gmTvjc4n1n9GNKSbZBbHwbzYWNzX8VeaNgy2fDDx4K4D6cUZBhgKJe9PJwgWKBmEyVDbIToaSA8Phr5T44ZAw7pu4LsirQy2BCWCuur5qEpM0nz3JVZC9drvELvgzO4E2NoccUZAJTYdNcpaqCOlDTJzFXS8TcWZA3ZATUWfjnm7W7jikS6v"
+      }, function (response) {
+              if (response && !response.error) {
+                const posts = response.data.slice(0, 3);
+                const container = document.getElementById('postsContainer');
+                const defaultImage = "Imagenes/nombre-removebg-preview.png";
+
+                posts.forEach(post => {
+                  const imgSrc = post.full_picture || defaultImage;
+                  const message = post.message || 'ZOMBRESIST';
+                  const postDate = new Date(post.created_time).toLocaleString();
+
+                  const col = document.createElement('div');
+                  col.className = 'tamaño';
+
+                  const card = document.createElement('div');
+                  card.className = 'card h-100';
+                  card.style.cursor = 'pointer';
+                  card.onclick = () => {
+                    document.getElementById('modalImage').src = imgSrc;
+                    document.getElementById('modalMessage').textContent = message;
+                    document.getElementById('modalDate').textContent = `Publicado: ${postDate}`;
+                    document.getElementById('modalLink').href = post.permalink_url || '#';
+                    const modal = new bootstrap.Modal(document.getElementById('postModal'));
+                    modal.show();
+                  };
+
+                  card.innerHTML = `
+                    <img src="${imgSrc}" class="card-img-top" alt="Imagen de publicación">
+                    <div class="card-body">
+                      <p class="card-text">${message}</p>
+                    </div>
+                  `;
+
+                  col.appendChild(card);
+                  container.appendChild(col);
+                });
+              } else {
+                console.error(response.error);
+                alert("Error al cargar publicaciones");
+              }
+            }
+          );
+        }
+      </script>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="postModal" tabindex="-1" aria-labelledby="postModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="postModalLabel">Publicación</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <img id="modalImage" src="" alt="Imagen" class="modal-img mb-3">
+            <p id="modalMessage"></p>
+          </div>
+          <div class="modal-footer">
+            <p class="text" id="modalDate"></p>
+            <a id="modalLink" href="#" target="_blank" class="btn btn-primary">Ver en Facebook</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>    
+  <script async defer crossorigin="anonymous" 
+  src="https://connect.facebook.net/en_US/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

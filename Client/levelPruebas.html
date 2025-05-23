@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZombResist</title>
+    <style>
+      body { margin: 0; }
+    </style>
+  </head>
+  <body>
+    <style>
+      body {
+        background: black;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      #hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: url('./interfaz.png'); /* Ruta de tu imagen PNG */
+        background-size: cover;
+        background-repeat: no-repeat;
+        pointer-events: none; /* Hace que no interfiera con clicks */
+        z-index: 1;
+      }
+
+      .hud-text {
+        position: fixed;
+        color: white;
+        z-index: 2; /* Asegura que el texto esté encima de la imagen */
+        font-family: sans-serif;
+        font-size: 18px;
+      }
+
+      .corazon {
+        width: 64px;
+        height: 64px;
+        margin-right: 4px;
+      }
+
+      #Winner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+      }
+
+      #winImage {
+        width: 100vw;  /* 100% del ancho de la ventana */
+        height: 100vh; /* 100% del alto de la ventana */
+        object-fit: cover; /* Opcional: recorta sin deformar */
+      }
+
+      #Losser {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+      }
+
+      #LossImage {
+        width: 100vw;  /* 100% del ancho de la ventana */
+        height: 100vh; /* 100% del alto de la ventana */
+        object-fit: cover; /* Opcional: recorta sin deformar */
+      }
+
+    </style>
+
+    <div id="crosshair" style="
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 500px; /* ajusta al tamaño de tu PNG */
+      height: 500px;
+      transform: translate(-50%, -50%);
+      background-image: url('./punto.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      pointer-events: none;
+      z-index: 10;
+    ">
+    </div>
+
+    <div id="hud" >
+      <div id="vidaContainer" style="position: fixed; top: 10px; left: 50px; z-index: 2;">
+        <!-- Aquí se agregarán los corazones con JavaScript -->
+      </div>
+      
+      <div id="timer" class="hud-text" style="top: 10px; left: 840px; font-size: 46px;">02:00</div>
+      <div id="EnemyM" class="hud-text" style="bottom: 30px; right: 75px; font-size: 64px;">0</div>
+      <div id="EnemyTotal" class="hud-text" style="bottom: 20px; left: 110px; font-size: 64px;">0</div>
+      <div id="ammoDisplay" class="hud-text" style="top: 60px; right: 120px; font-size: 56px;">0</div>
+      <div id="ammoDisplay2" class="hud-text" style="top: 60px; right: 40px; font-size: 56px;">/0</div>
+    </div>
+
+    <div id="Winner" class="hud-text" style="display: none;">
+      <img id="WinImage" src="./win.png" style="display: none;">
+    </div>
+
+    <div id="Losser" class="hud-text" style="display: none;">
+      <img id="LossImage" src="./game-over.png" style="display: none;">
+    </div>
+    
+
+    <!-- Then Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script type="module" src="level.js" >
+        
+    </script>
+  </body>
+</html>
