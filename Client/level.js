@@ -79,6 +79,7 @@ let SoldierLife = 100;
 const vidaMaxima = 5;
 let vidaActual = 5;
 let tiempoRestante = 120; // tiempo en segundos (2 minutos)
+let puntaje = 0;
 let intervaloID = null;
 let EnemigosM = 0;
 let EnemigosTotales = 0;
@@ -110,6 +111,30 @@ let Zombie;
 let ZombieDamage = 0;
 let Atack = false;
 //escena
+
+function ObtenPuntuacion(){
+  //soy una puntuacion! :3
+  puntaje = (EnemigosM * 100)
+         - (EnemigosTotales * 25)
+         + (SoldierLife * 10)
+         + ((ammoMax + ammo) * 2);
+
+  console.log('puntuacion',puntaje);
+  localStorage.setItem('Kills', EnemigosM);
+  localStorage.setItem('Tiempo', tiempoRestante);
+  localStorage.setItem('Puntuacion', puntaje);
+  mostrarTablaPuntuacion(puntaje, EnemigosM, tiempoRestante)
+  
+
+}
+
+function mostrarTablaPuntuacion(puntaje, enemigos, tiempo) {
+  document.getElementById('puntajeFinal').textContent = puntaje;
+  document.getElementById('enemigosEliminados').textContent = enemigos;
+  document.getElementById('tiempoFinal').textContent = tiempo;
+  
+  document.getElementById('scoreBoard').style.display = 'block';
+}
 
 //Funciones de socket io
 socket.on('playersUpdate', (players) => {
@@ -251,11 +276,11 @@ function setDificultad(){
       ];
 
       posicionesMedics = [
-        {x:150,y:0,z:100},
-        {x:-230,y:0,z:-500},
-        {x:-510,y:0,z:500},
-        {x:290,y:0,z:-500},
-        {x:350,y:0,z:500}
+        {x:150,y:3,z:100},
+        {x:-230,y:3,z:-500},
+        {x:-510,y:3,z:500},
+        {x:290,y:3,z:-500},
+        {x:350,y:3,z:500}
       ];
       break;
 
@@ -274,10 +299,10 @@ function setDificultad(){
       ];
 
       posicionesMedics = [
-        {x:-230,y:0,z:-500},
-        {x:-510,y:0,z:500},
-        {x:290,y:0,z:-500},
-        {x:350,y:0,z:500}
+        {x:-230,y:3,z:-500},
+        {x:-510,y:3,z:500},
+        {x:290,y:3,z:-500},
+        {x:350,y:3,z:500}
       ];
       break;
     
@@ -294,9 +319,9 @@ function setDificultad(){
       ];
 
       posicionesMedics = [
-        {x:-510,y:0,z:500},
-        {x:290,y:0,z:-500},
-        {x:350,y:0,z:500}
+        {x:-510,y:3,z:500},
+        {x:290,y:3,z:-500},
+        {x:350,y:3,z:500}
       ];
       break;
 
@@ -312,8 +337,8 @@ function setDificultad(){
       ];
 
       posicionesMedics = [
-        {x:-510,y:0,z:500},
-        {x:350,y:0,z:500}
+        {x:-510,y:3,z:500},
+        {x:350,y:3,z:500}
       ];
       break;
   
@@ -1143,6 +1168,7 @@ function updateProjectiles() {
                   hudMain(FinJuego);
                   Winner = true;
                   socket.emit('gameOver', { win: true }); // o false
+                  ObtenPuntuacion();
                   document.getElementById("Winner").style.display = "block";
                   document.getElementById("WinImage").style.display = "block";
                 }
@@ -1669,6 +1695,17 @@ function animate() {
   //if (mixer2) mixer2.update(delta);
 
   const isMoving = moveForward || moveBackward || moveLeft || moveRight;
+
+  const tiempo = performance.now() * 0.001; // tiempo en segundos
+
+  medics.forEach(medic => {
+    // Rotación continua
+    medic.rotation.y += 0.01;
+
+    // Escala animada tipo pulso
+    const escala = 1 + Math.sin(tiempo * 2) * 0.3; // escala entre 0.9 y 1.1
+    medic.scale.set(escala, escala, escala);
+  });
 
   if (humoDelMotor.actualizarMovimiento) {
     humoDelMotor.actualizarMovimiento();
