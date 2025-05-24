@@ -94,7 +94,7 @@ io.on('connection', (socket) => {
   //   socket.emit('scoresList', scores);
   // });
 
-  const players = {};
+  // const players = {};
   
   // Enviar estado de enemigos al nuevo jugador
 socket.emit('enemySpawn', enemies);
@@ -132,9 +132,10 @@ socket.on('disconnect', () => {
 });
 
 setInterval(() => {
-  const playerList = Object.values(players);
-  if (playerList.length === 0) return;
 
+  const playerList = Object.values(players);
+
+  if (playerList.length === 0) return;
   for (const id in enemies) {
     const e = enemies[id];
     if (e.health <= 0) continue;
