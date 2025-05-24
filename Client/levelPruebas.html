@@ -154,6 +154,37 @@
       </button>
     </div>
 
+    <!-- pausa-->
+     <div id="pauseMenu" style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.85);
+        padding: 30px 40px;
+        border-radius: 12px;
+        color: white;
+        font-family: sans-serif;
+        text-align: center;
+        z-index: 9999;
+        display: none;
+      ">
+        <h2 style="margin-bottom: 25px; font-size: 32px;">Juego en Pausa</h2>
+
+        <br />
+        <button onclick="window.location.href='lobby.html'" style="
+          padding: 10px 20px;
+          font-size: 16px;
+          background-color: #dc3545;
+          border: none;
+          border-radius: 6px;
+          color: white;
+          cursor: pointer;
+        ">
+          Salir al Lobby
+        </button>
+      </div>
+
     <!-- Then Socket.IO -->
     <script src="/socket.io/socket.io.js"></script>
 

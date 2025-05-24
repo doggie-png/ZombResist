@@ -112,6 +112,22 @@ let ZombieDamage = 0;
 let Atack = false;
 //escena
 
+let juegoPausado = false;
+
+function pausarJuego() {
+  juegoPausado = true;
+  clearInterval(intervaloID); 
+  document.getElementById('pauseMenu').style.display = 'block';
+
+}
+
+function reanudarJuego() {
+  juegoPausado = false;
+  document.getElementById('pauseMenu').style.display = 'none';
+  // vuelve a iniciar el temporizador
+  iniciarTemporizador();
+}
+
 function ObtenPuntuacion(){
   //soy una puntuacion! :3
   puntaje = (EnemigosM * 100)
@@ -1607,6 +1623,14 @@ window.addEventListener('keydown', (event) => {
         break;
       case 'KeyR':
         reloadAmmo(currentWeapon);
+        break;
+
+      case 'KeyP':
+         if (!juegoPausado) {
+            pausarJuego();
+          } else {
+            reanudarJuego();
+          }
         break;
     }
 });
